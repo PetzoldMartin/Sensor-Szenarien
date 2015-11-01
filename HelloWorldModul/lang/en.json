@@ -1,0 +1,8 @@
+{
+	"m_title":"Hello World Modul",
+	"m_descr":"This module demonstrates some of the concepts for the development with Z-Way.",
+	"l_example_parameter":"Parameter",
+	"l_example_parameter_help":"This parameter have to assign with a numeric value.<br /><i>Tipp:</i> <b>HTML-Code</b> can be used for formatting.",
+	"l_other_virtual_device":"Virtual Device (Binary Switch)",
+	"l_other_virtual_device_help":"This selection list contains all binary switches, is defined through namespaces<br />Possible namespaces are by default:</br />devices_sensorMultilevel, devices_sensorBinary, devices_switchMultilevel, devices_switchBinary, devices_all"
+}

@@ -1,0 +1,47 @@
+{
+	"singleton" : false,
+	"dependencies": [],
+	"category": "",
+	"author": "Patrick Hecker, Simon Schwabe",
+	"homepage": "",
+	"icon": "icon.png",
+        "moduleName": "HelloWorldModul",
+	"version": "1.0.0",
+	"maturity": "stable",
+	"defaults" : {
+		"title" : "__m_title__",
+		"description" : "__m_descr__"
+	},
+	"schema" : {
+		"type" : "object",
+		"properties" : {
+			"exampleParameter": {
+				"type": "integer",
+				"required": true
+			},
+			"otherVirtualDevice": {
+				"field": "enum",
+				"datasource": "namespaces",
+				"enum": "namespaces:devices_switchBinary:deviceId"
+			}
+		},
+		"required": false
+	},
+	"options": {
+		"fields": {
+			"exampleParameter": {
+				"label": "__l_example_parameter__",
+				"type": "integer",
+				"helper": "__l_example_parameter_help__"
+			},
+			"otherVirtualDevice": {
+				"label": "__l_other_virtual_device__",
+				"type": "select",
+				"datasource": "namespaces",
+				"field": "optionLabels",
+				"optionLabels": "namespaces:devices_switchBinary:deviceName",
+				"helper": "__l_other_virtual_device_help__"
+			}
+		}
+	}
+}
