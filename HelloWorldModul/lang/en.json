@@ -4,5 +4,9 @@
 	"l_example_parameter":"Parameter",
 	"l_example_parameter_help":"This parameter have to assign with a numeric value.<br /><i>Tipp:</i> <b>HTML-Code</b> can be used for formatting.",
 	"l_other_virtual_device":"Virtual Device (Binary Switch)",
-	"l_other_virtual_device_help":"This selection list contains all binary switches, is defined through namespaces<br />Possible namespaces are by default:</br />devices_sensorMultilevel, devices_sensorBinary, devices_switchMultilevel, devices_switchBinary, devices_all"
+	"l_other_virtual_device_help":"This selection list contains all binary switches, is defined through namespaces<br />Possible namespaces are by default:</br />devices_sensorMultilevel, devices_sensorBinary, devices_switchMultilevel, devices_switchBinary, devices_all",
+	"l_http_start_alarm":"Alarm Start URL",
+	"l_http_start_alarm_placeholder":"http://192.168.0.100/smarthome/simulation.php/alarmState/on",
+	"l_http_stop_alarm":"Alarm Stop URL",
+	"l_http_stop_alarm_placeholder":"http://192.168.0.100/smarthome/simulation.php/alarmState/off"
 }

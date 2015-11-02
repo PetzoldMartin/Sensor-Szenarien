@@ -23,6 +23,12 @@
 				"field": "enum",
 				"datasource": "namespaces",
 				"enum": "namespaces:devices_switchBinary:deviceId"
+			},
+			"alarmStartUrl": {
+				"type": "string"
+			},
+			"alarmStopUrl": {
+				"type": "string"
 			}
 		},
 		"required": false
@@ -41,6 +47,16 @@
 				"field": "optionLabels",
 				"optionLabels": "namespaces:devices_switchBinary:deviceName",
 				"helper": "__l_other_virtual_device_help__"
+			},
+			"alarmStartUrl": {
+				"label": "__l_http_start_alarm__",
+				"type": "text",
+				"placeholder": "__l_http_start_alarm_placeholder__"
+			},
+			"alarmStopUrl": {
+				"label": "__l_http_stop_alarm__",
+				"type": "text",
+				"placeholder": "__l_http_stop_alarm_placeholder__"
 			}
 		}
 	}

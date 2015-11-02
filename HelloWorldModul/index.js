@@ -44,7 +44,8 @@ HelloWorldModul.prototype.init = function (config) {
             metrics: {
                 title: 'Hello World Modul ' + this.id,
                 level: '',
-                customValue: '' // this value isn't deleted after a restart
+                customValue: '', // this value isn't deleted after a restart
+                alarmSwitchDeviceId: -1
             }
         },
         // 'overlay' defines, how an module is presented in UI view 'Elements'
@@ -84,6 +85,9 @@ HelloWorldModul.prototype.init = function (config) {
         moduleId: this.id
     });
 
+    // save virtual device obejct for later use (outside the scope of this function)
+    self.vDev = vDev;
+
     // ******************************************
     // *** Access to configuration parameters ***
     // ******************************************
@@ -116,14 +120,94 @@ HelloWorldModul.prototype.init = function (config) {
     self.controller.devices.on("HelloWorldModul_" + self.id, "exampleEmitOfHelloWorld", function() {
         self.controller.addNotification("info", "Hello World Modul with Id " + self.id + ": received a message of my own emitted event ", "module", "HelloWorldModul");
     });
+
+    // *************************************************************************************************
+    // *** Create an alarm switch, which submits a corresponding HTTP request depending on the state ***
+    // *************************************************************************************************
+
+    // Wait for event core.start, which indicates, that all modules are loaded.
+    // Otherwise an exception will be thrown, because the module can not be used.
+    // ATTENTION!
+    // This is only called when the system starts, this implies, that new modules
+    // are after restarts only!
+    self.controller.on("core.start", function() {
+        // first check if one switch exist, if not create one and save the id
+        if(vDev.get("metrics:alarmSwitchDeviceId") === -1) {
+            // create alarm switch device and store new device id
+            var alarmSwitchDeviceId = self.createAlarmSwitch();
+
+            // save the alarm switch id in metrics field of virtual device, the value remains available after a restart
+            vDev.set("metrics:alarmSwitchDeviceId", alarmSwitchDeviceId);
+        }
+
+        // configure listeners for the specific alarm switch device
+        self.controller.devices.on("DummyDevice_" + vDev.get("metrics:alarmSwitchDeviceId"), "change:metrics:level", function() {
+            // load virtual device object
+            var alarmSwitchDevice = self.controller.devices.get("DummyDevice_" + vDev.get("metrics:alarmSwitchDeviceId"));
+
+    		if(alarmSwitchDevice) {
+                // get actual state of alarm switch device (on | off)
+    			var actLevel = alarmSwitchDevice.get("metrics:level");
+
+                if(actLevel === 'on') {
+                    if(config.alarmStartUrl) {
+                        // start alarm by sending a HTTP request
+                        http.request({
+                            url: config.alarmStartUrl,
+                            method: 'GET',
+                            async: true,
+                            error: function(response) {
+                                self.controller.addNotification("error", response.statusText, "module", 'HelloWorldModul');
+                            }
+                        });
+                    }
+                } else if(actLevel === 'off') {
+                    if(config.alarmStopUrl) {
+                        // stop alarm by sending a HTTP request
+                        http.request({
+                            url: config.alarmStopUrl,
+                            method: 'GET',
+                            async: true,
+                            error: function(response) {
+                                self.controller.addNotification("error", response.statusText, "module", 'HelloWorldModul');
+                            }
+                        });
+                    }
+                }
+    		}
+        });
+    });
 };
 
 HelloWorldModul.prototype.stop = function () {
     // unregister events
     this.controller.devices.off(this.config.other_virtual_device, "change:metrics:level", function() {});
     this.controller.devices.off("HelloWorldModul_" + this.id, "exampleEmitOfHelloWorld", function() {});
+    this.controller.devices.off(this.vDev.get("metrics:alarmSwitchDeviceId"), "change:metrics:level", function() {});
 
     this.controller.devices.remove("HelloWorldModul_" + this.id);
 
     HelloWorldModul.super_.prototype.stop.call(this);
 };
+
+HelloWorldModul.prototype.createAlarmSwitch = function () {
+	var self = this;
+
+    // create a new module (instance)
+    var result = self.controller.createInstance({
+        "instanceId": "0",
+        "moduleId": "DummyDevice",
+        "active": "true",
+        "title": "Dummy Device",
+        "description": "...",
+        "params": {
+            "deviceType": "switchBinary"
+        }
+    });
+
+    // rename virtual device
+    var alarmSwitchDevice = self.controller.devices.get("DummyDevice_" + result.id);
+    alarmSwitchDevice.set({'metrics': {'title': 'Alarm Switch ' + result.id, 'level': 'off'}});
+
+	return result.id; // device id
+}
