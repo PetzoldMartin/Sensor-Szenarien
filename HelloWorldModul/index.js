@@ -99,7 +99,7 @@ HelloWorldModul.prototype.init = function (config) {
 
     // 2. another parameter, as an example for a virtual device
     // this demonstrates the connection between the HelloWorldModul and the selected switchBinary from setup
-    var otherVirtualDeviceId = self.config.otherVirtualDevice;
+    var otherVirtualDeviceId = self.config.otherVirtualDevice; // for example: DummyDevice_1
     if(otherVirtualDeviceId) {
         // sign up for an event (see also in stop function)
         self.controller.devices.on(otherVirtualDeviceId, "change:metrics:level", function() {
@@ -134,16 +134,16 @@ HelloWorldModul.prototype.init = function (config) {
         // first check if one switch exist, if not create one and save the id
         if(vDev.get("metrics:alarmSwitchDeviceId") === -1) {
             // create alarm switch device and store new device id
-            var alarmSwitchDeviceId = self.createAlarmSwitch();
+            var alarmSwitchDeviceId = self.createAlarmSwitch(); // for example: DummyDevice_1
 
             // save the alarm switch id in metrics field of virtual device, the value remains available after a restart
             vDev.set("metrics:alarmSwitchDeviceId", alarmSwitchDeviceId);
         }
 
         // configure listeners for the specific alarm switch device
-        self.controller.devices.on("DummyDevice_" + vDev.get("metrics:alarmSwitchDeviceId"), "change:metrics:level", function() {
+        self.controller.devices.on(vDev.get("metrics:alarmSwitchDeviceId"), "change:metrics:level", function() {
             // load virtual device object
-            var alarmSwitchDevice = self.controller.devices.get("DummyDevice_" + vDev.get("metrics:alarmSwitchDeviceId"));
+            var alarmSwitchDevice = self.controller.devices.get(vDev.get("metrics:alarmSwitchDeviceId"));
 
     		if(alarmSwitchDevice) {
                 // get actual state of alarm switch device (on | off)
@@ -154,8 +154,9 @@ HelloWorldModul.prototype.init = function (config) {
                         // start alarm by sending a HTTP request
                         http.request({
                             url: config.alarmStartUrl,
-                            method: 'GET',
+                            type: 'GET',
                             async: true,
+							dataType: "json",
                             error: function(response) {
                                 self.controller.addNotification("error", response.statusText, "module", 'HelloWorldModul');
                             }
@@ -166,8 +167,9 @@ HelloWorldModul.prototype.init = function (config) {
                         // stop alarm by sending a HTTP request
                         http.request({
                             url: config.alarmStopUrl,
-                            method: 'GET',
+                            type: 'GET',
                             async: true,
+							dataType: "json",
                             error: function(response) {
                                 self.controller.addNotification("error", response.statusText, "module", 'HelloWorldModul');
                             }
@@ -209,5 +211,5 @@ HelloWorldModul.prototype.createAlarmSwitch = function () {
     var alarmSwitchDevice = self.controller.devices.get("DummyDevice_" + result.id);
     alarmSwitchDevice.set({'metrics': {'title': 'Alarm Switch ' + result.id, 'level': 'off'}});
 
-	return result.id; // device id
+	return "DummyDevice_" + result.id; // device id
 }
