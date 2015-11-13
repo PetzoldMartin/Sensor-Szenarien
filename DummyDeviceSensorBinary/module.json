@@ -1,0 +1,26 @@
+{
+	"singleton" : false,
+	"dependencies": [],
+	"category": "",
+	"author": "Patrick Hecker, Simon Schwabe",
+	"homepage": "",
+	"icon": "icon.png",
+        "moduleName": "DummyDeviceSensorBinary",
+	"version": "1.0.0",
+	"maturity": "stable",
+	"defaults" : {
+		"title" : "__m_title__",
+		"description" : "__m_descr__"
+	},
+	"schema" : {
+		"type" : "object",
+		"properties" : {
+
+		}
+	},
+	"options": {
+		"fields": {
+
+		}
+	}
+}
