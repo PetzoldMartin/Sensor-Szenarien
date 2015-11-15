@@ -1,0 +1,15 @@
+{
+    "m_title": "DeltaCOTwoModul",
+    "m_descr": "Some Delta of a Sensor Value made for CO2 Sensor.",
+    "l_delta_value":"Delta Value for CO2 Changes",
+    "l_delta_value_help":"Insert the CO2 Change for an Adult here",
+    "l_room_volume":"Volume of the measured Room",
+    "l_room_volume_help":"Volume of the measured Room in Litre",
+    "l_CO2_Sensor":"The CO2 Sensor of the Room",
+    "l_CO2_Sensor_help":"Please Choose Your CO2 Sensor",
+    "l_people_count":"Start Count of People in Room",
+    "l_people_count_help":"Please insert the count of people who are in the Room"
+
+
+
+}
