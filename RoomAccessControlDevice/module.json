@@ -1,0 +1,106 @@
+{
+	"singleton" : false,
+	"dependencies": [],
+	"category": "automation_basic",
+	"author": "Z-Wave.Me",
+	"homepage": "http://razberry.z-wave.me",
+	"icon": "icon.png",
+        "moduleName": "RoomAccessControlDevice",
+	"version": "1.0.0",
+	"maturity": "stable",
+	"repository": {
+		"type": "git",
+		"source": "https://github.com/Z-Wave-Me/home-automation"
+	},
+	"defaults" : {
+		"title" : "__m_title__",
+		"description" : "__m_descr__",
+		"roomAccessControls": []
+	},
+	"schema" : {
+		"type" : "object",
+		"properties" : {
+			"room": {
+				"type": "integer",
+				"required": true
+			},
+			"roomAccessControls": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"roomAccessControlType": {
+							"type": "string",
+							"enum": ["Motion", "CO2", "Beacon"],
+							"required": true,
+							"default": "Motion"
+						},
+						"roomAccessControlMotionSensor": {
+							"type": "object",
+							"dependencies": "roomAccessControlType",
+							"properties": {
+								"motionSensorIn": {
+									"field": "enum",
+									"datasource": "namespaces",
+									"enum": "namespaces:devices_sensorBinary:deviceId",
+									"required": true
+								},
+								"motionSensorOut": {
+									"field": "enum",
+									"datasource": "namespaces",
+									"enum": "namespaces:devices_sensorBinary:deviceId",
+									"required": true
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"options": {
+		"fields": {
+			"room": {
+				"label": "__l_room_id__",
+				"type": "integer",
+				"helper": "__l_room_help__"
+			},
+			"roomAccessControls": {
+				"label": "__l_room_access_controls__",
+				"fields": {
+					"item": {
+						"fields": {
+							"roomAccessControlType": {
+								"type": "select",
+								"default": "",
+								"helper": "__l_room_access_control_help__"
+							},
+							"roomAccessControlMotionSensor": {
+								"label": "__l_room_access_control_motion_sensor__",
+								"dependencies": {
+									"roomAccessControlType": "Motion"
+								},
+								"fields": {
+									"motionSensorIn": {
+										"label": "__l_motion_sensor_in__",
+										"type": "select",
+										"datasource": "namespaces",
+										"field": "optionLabels",
+										"optionLabels": "namespaces:devices_sensorBinary:deviceName"
+									},
+									"motionSensorOut": {
+										"label": "__l_motion_sensor_out__",
+										"type": "select",
+										"datasource": "namespaces",
+										"field": "optionLabels",
+										"optionLabels": "namespaces:devices_sensorBinary:deviceName"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
