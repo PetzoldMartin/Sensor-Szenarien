@@ -1,0 +1,62 @@
+{
+	"singleton" : false,
+	"dependencies": [],
+	"category": "",
+	"author": "Patrick Hecker",
+	"homepage": "",
+	"icon": "icon.png",
+        "moduleName": "InHomeFeedbackModule",
+	"version": "1.0.0",
+	"maturity": "stable",
+	"defaults" : {
+		"title" : "__m_title__",
+		"description" : "__m_descr__"
+	},
+	"schema" : {
+		"type" : "object",
+		"properties" : {
+			"room": {
+				"type": "integer",
+				"required": true
+			},
+			"duration": {
+				"type": "integer",
+				"required": true
+			},
+			"visualActuators": {
+				"type": "array",
+				"items": {
+					"field": "enum",
+					"datasource": "namespaces",
+					"enum": "namespaces:devices_switchBinary:deviceId,namespaces:devices_switchMultilevel:deviceId",
+					"required": true
+				}
+			}
+		},
+		"required": false
+	},
+	"options": {
+		"fields": {
+			"room": {
+				"label": "__l_room_id__",
+				"type": "integer",
+				"helper": "__l_room_help__"
+			},
+			"duration": {
+				"label": "__l_duration__",
+				"type": "integer"
+			},
+			"visualActuators": {
+				"label": "__l_visual_actuators__",
+				"fields": {
+					"item": {
+						"type": "select",
+						"datasource": "namespaces",
+						"field": "optionLabels",
+						"optionLabels": "namespaces:devices_switchBinary:deviceName,namespaces:devices_switchMultilevel:deviceName"
+					}
+				}
+			}
+		}
+	}
+}
