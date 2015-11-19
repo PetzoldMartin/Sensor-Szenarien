@@ -40,6 +40,7 @@ InHomeFeedbackModule.prototype.init = function (config) {
         defaults: {
             metrics: {
                 title: 'In Home Feedback Module ' + this.id,
+                level: 0,
                 roomId: -1
             }
         },
@@ -60,6 +61,8 @@ InHomeFeedbackModule.prototype.init = function (config) {
                     duration = args.duration;
                 }
 
+                self.startFeedbackModuleTimer(vDev, duration);
+
                 // start feedback mechanism
                 self.startVisualActuatorsMechanism();
                 self.controller.addNotification("info", "InHomeFeedbackModule start feedback mechanism for the next " + duration + " seconds.", "module", "InHomeFeedbackModule");
@@ -68,6 +71,7 @@ InHomeFeedbackModule.prototype.init = function (config) {
                 this.timeout = setTimeout(function() {
                     // cancel feedback mechanism
                     self.stopVisualActuatorsMechanism();
+                    self.stopFeedbackModuleTimer(vDev);
 
                     self.controller.addNotification("info", "InHomeFeedbackModule stopped feedback mechanism", "module", "InHomeFeedbackModule");
                 }, duration * 1000);
@@ -78,6 +82,12 @@ InHomeFeedbackModule.prototype.init = function (config) {
 
                     // cancel feedback mechanism
                     self.stopVisualActuatorsMechanism();
+                    self.stopFeedbackModuleTimer(vDev);
+
+                    // stop feedback module timer for early stop
+                    if (self.feedbackModuleTimer) {
+                        clearInterval(self.visualActuatorsTimer);
+                    }
 
                     self.controller.addNotification("info", "InHomeFeedbackModule stopped feedback mechanism", "module", "InHomeFeedbackModule");
                 }
@@ -96,6 +106,7 @@ InHomeFeedbackModule.prototype.stop = function () {
     var self = this;
 
     self.stopVisualActuatorsMechanism();
+    self.stopFeedbackModuleTimer(self.vDev);
 
     self.controller.devices.remove("InHomeFeedbackModule_" + self.id);
 
@@ -150,5 +161,24 @@ InHomeFeedbackModule.prototype.stopVisualActuatorsMechanism = function () {
 
     if (self.visualActuatorsTimer) {
         clearInterval(self.visualActuatorsTimer);
+    }
+};
+
+InHomeFeedbackModule.prototype.startFeedbackModuleTimer = function (vDev, duration) {
+    var self = this;
+
+    var remainingTime = duration
+    self.feedbackModuleTimer = setInterval(function() {
+        vDev.set("metrics:level", remainingTime + " Sekunden");
+        remainingTime--;
+    }, 1 * 1000);
+};
+
+InHomeFeedbackModule.prototype.stopFeedbackModuleTimer = function (vDev) {
+    var self = this;
+
+    if (self.feedbackModuleTimer) {
+        clearInterval(self.feedbackModuleTimer);
+        vDev.set("metrics:level", "Pause");
     }
 };
