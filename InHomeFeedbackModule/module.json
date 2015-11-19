@@ -19,6 +19,11 @@
 				"type": "integer",
 				"required": true
 			},
+			"cancelSwitch": {
+				"field": "enum",
+				"datasource": "namespaces",
+				"enum": "namespaces:devices_switchBinary:deviceId"
+			},
 			"duration": {
 				"type": "integer",
 				"required": true
@@ -41,6 +46,13 @@
 				"label": "__l_room_id__",
 				"type": "integer",
 				"helper": "__l_room_help__"
+			},
+			"cancelSwitch": {
+				"label": "__l_cancel_switch__",
+				"type": "select",
+				"datasource": "namespaces",
+				"field": "optionLabels",
+				"optionLabels": "namespaces:devices_switchBinary:deviceName"
 			},
 			"duration": {
 				"label": "__l_duration__",

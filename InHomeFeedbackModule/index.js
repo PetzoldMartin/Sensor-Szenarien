@@ -1,3 +1,7 @@
+// TODO
+// - configuration parameters
+// - events
+
 /* In Home Feedback Module
  *
  * Version: 1.1.0
@@ -61,35 +65,51 @@ InHomeFeedbackModule.prototype.init = function (config) {
                     duration = args.duration;
                 }
 
+                // start counter at ui
                 self.startFeedbackModuleTimer(vDev, duration);
 
                 // start feedback mechanism
                 self.startVisualActuatorsMechanism();
+
                 self.controller.addNotification("info", "InHomeFeedbackModule start feedback mechanism for the next " + duration + " seconds.", "module", "InHomeFeedbackModule");
 
-                // start automatic termination timeout
-                this.timeout = setTimeout(function() {
-                    // cancel feedback mechanism
-                    self.stopVisualActuatorsMechanism();
-                    self.stopFeedbackModuleTimer(vDev);
+                // emit event: [deviceId]:feedback_module_[roomId]_started
+                self.controller.devices.emit(vDev.deviceId + ':feedback_module_' + vDev.get("metrics:roomId") + '_started');
 
-                    self.controller.addNotification("info", "InHomeFeedbackModule stopped feedback mechanism", "module", "InHomeFeedbackModule");
+                // start automatic termination timeout
+                self.timeout = setTimeout(function() {
+                    // cancel feedback mechanism
+                    self.stopAllFeedbackMechanism(vDev);
+
+                    self.controller.addNotification("info", "In Home Feedback Module stopped normally feedback mechanism", "module", "InHomeFeedbackModule");
+
+                    // emit event: [deviceId]:feedback_module_[roomId]_stopped_normal
+                    self.controller.devices.emit(vDev.deviceId + ':feedback_module_' + vDev.get("metrics:roomId") + '_stopped_normal');
                 }, duration * 1000);
 			} else if(command === "stop") {
-                if (this.timeout) {
+                if (self.timeout) {
                     // remove automatic termination timeout
-                    clearTimeout(this.timeout);
+                    clearTimeout(self.timeout);
 
                     // cancel feedback mechanism
-                    self.stopVisualActuatorsMechanism();
-                    self.stopFeedbackModuleTimer(vDev);
+                    self.stopAllFeedbackMechanism(vDev);
 
                     // stop feedback module timer for early stop
                     if (self.feedbackModuleTimer) {
                         clearInterval(self.visualActuatorsTimer);
                     }
 
-                    self.controller.addNotification("info", "InHomeFeedbackModule stopped feedback mechanism", "module", "InHomeFeedbackModule");
+                    self.controller.addNotification("info", "In Home Feedback Module stopped manually feedback mechanism,", "module", "InHomeFeedbackModule");
+
+                    // emit event: [deviceId]:feedback_module_[roomId]_stopped_manual
+                    self.controller.devices.emit(vDev.deviceId + ':feedback_module_' + vDev.get("metrics:roomId") + '_stopped_manual');
+                }
+            } else if(command == "cancel") {
+                self.cancelByUser(vDev);
+            } else {
+                return {
+                    'code': 1,
+                    'message': 'OK - Error - command is not definied!'
                 }
             }
         },
@@ -100,17 +120,32 @@ InHomeFeedbackModule.prototype.init = function (config) {
     if(self.config.room) {
         vDev.set("metrics:roomId", self.config.room);
     }
+
+    // add listener for cancel switch
+    if(self.config.cancelSwitch) {
+        self.controller.devices.on(self.config.cancelSwitch, "change:metrics:level", function() {
+            self.cancelByUser(vDev);
+        });
+    }
 };
 
 InHomeFeedbackModule.prototype.stop = function () {
     var self = this;
 
-    self.stopVisualActuatorsMechanism();
-    self.stopFeedbackModuleTimer(self.vDev);
+    self.stopAllFeedbackMechanism(self.vDev);
+
+    self.controller.devices.off(self.config.cancelSwitch, "change:metrics:level", function() {});
 
     self.controller.devices.remove("InHomeFeedbackModule_" + self.id);
 
     InHomeFeedbackModule.super_.prototype.stop.call(self);
+};
+
+InHomeFeedbackModule.prototype.stopAllFeedbackMechanism = function (vDev) {
+    var self = this;
+
+    self.stopVisualActuatorsMechanism();
+    self.stopFeedbackModuleTimer(vDev);
 };
 
 InHomeFeedbackModule.prototype.startVisualActuatorsMechanism = function () {
@@ -181,4 +216,16 @@ InHomeFeedbackModule.prototype.stopFeedbackModuleTimer = function (vDev) {
         clearInterval(self.feedbackModuleTimer);
         vDev.set("metrics:level", "Pause");
     }
+};
+
+InHomeFeedbackModule.prototype.cancelByUser = function (vDev) {
+    var self = this;
+
+    // cancel feedback mechanism
+    self.stopAllFeedbackMechanism(vDev);
+
+    self.controller.addNotification("info", "In Home Feedback Module canceled feedback mechanism by user.", "module", "InHomeFeedbackModule");
+
+    // emit event: [deviceId]:feedback_module_[roomId]_canceled_by_user
+    self.controller.devices.emit(vDev.deviceId + ':feedback_module_' + vDev.get("metrics:roomId") + '_canceled_by_user');
 };
