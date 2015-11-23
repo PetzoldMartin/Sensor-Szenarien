@@ -164,9 +164,11 @@ InHomeFeedbackModule.prototype.startVisualActuatorsMechanism = function () {
                         var deviceType = vDev.get("deviceType");
 
                         if (deviceType === "switchBinary") {
-                            vDev.set("metrics:level", 'off');
+                            //vDev.set("metrics:level", 'off');
+                            vDev.performCommand("off");
                         } else if (deviceType === "switchMultilevel") {
-                            vDev.set("metrics:level", '0');
+                            //vDev.set("metrics:level", '0');
+                            vDev.performCommand("exact", { level: 0 });
                         }
                     }
                 });
@@ -179,9 +181,11 @@ InHomeFeedbackModule.prototype.startVisualActuatorsMechanism = function () {
                         var deviceType = vDev.get("deviceType");
 
                         if (deviceType === "switchBinary") {
-                            vDev.set("metrics:level", 'on');
+                            //vDev.set("metrics:level", 'on');
+                            vDev.performCommand("on");
                         } else if (deviceType === "switchMultilevel") {
-                            vDev.set("metrics:level", '99');
+                            //vDev.set("metrics:level", '99');
+                            vDev.performCommand("exact", { level: 99 });
                         }
                     }
                 });
