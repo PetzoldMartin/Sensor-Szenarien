@@ -15,8 +15,8 @@ DeltaCO2Modul.prototype.init = function (config) {
     this.waitingMinutes = 2;
     this.actualPpm = 0;
     this.startTime = new Date().getTime();
-    this.ppmList=[];
-    this.counter=0;
+    this.mList = [];
+    this.counter = 0;
 
     var vDev = self.controller.devices.create(
             {
@@ -67,33 +67,52 @@ DeltaCO2Modul.prototype.init = function (config) {
 
 
     var CO2SensorId = self.config.CO2Sensor;
+    //CO2Device = self.controller.devices.get(CO2SensorId);
+    var tLevel=0;//this.CO2Device.get("metrics:level");
+    var tTime=new Date().getTime();
 
     if (CO2SensorId) {
         self.controller.devices.on(CO2SensorId, "change:metrics:level", function () {
+            var CO2Device = self.controller.devices.get(CO2SensorId);
+
+            if(tLevel===0){
+                tLevel=CO2Device.get("metrics:level");
+            }
+            self.controller.addNotification("info", "CODeltaModul" + self.id + ": nochanges:", "module", "DeltaCO2Modul");
+            self.controller.devices.emit(vDev.deviceId + ':exampleEmitOfDeltaCO2Modul');
 
             var nTime = new Date().getTime();
-            if (self.startTime + (1/2) * 60000 < nTime) {
+            if (self.startTime + self.waitingMinutes * 60000 < nTime) {
+                //next step goto extern function
+                var ILevel=CO2Device.get("metrics:level");
+                var ITime=new Date().getTime();
+                self.mList[self.counter]=tLevel-ILevel/tTime-ITime;
+                self.counter++;
+                tLevel=ILevel;
+                tTime=ITime;
+                self.controller.addNotification("info", "CODeltaModul" + self.id + ": new m ", "module", "DeltaCO2Modul");
                 
-                var CO2Device = self.controller.devices.get(CO2SensorId);
-                self.startTime = nTime;
-                self.ppmList[self.counter]=CO2Device.get("metrics:level");
-                
-                if(self.counter===2*self.waitingMinutes){
-                var ppmDelta=0;   
-                for(var index = 0; index < self.ppmList.length-1; index++){
-                    ppmDelta+=self.ppmList[index]-self.ppmList[index+1];
-                   };
-                ppmDelta=ppmDelta/(self.ppmList.length-1);
-                self.controller.addNotification("info", "CODeltaModul" + self.id + ": the configured CO2Sensor switch changed its level.delta:" + ppmDelta, "module", "DeltaCO2Modul");
-                //self.controller.devices.emit(vDev.deviceId + ':exampleEmitOfDeltaCO2Modul');
-            }
-                if(self.counter<=2*self.waitingMinutes){
-                    self.counter++;
-                }else{
-                    self.counter=0;
+                self.counter=0;
+                var delta=0;
+                var timeDelta=self.startTime-new Date().getTime();
+                for(var index = 0; index < self.mList.length; index++) {
+                  
+                  delta+=self.mList[index];
                 }
-                    
-                
+                var ppmDelta=delta/timeDelta;
+                self.controller.addNotification("info", "CODeltaModul" + self.id + ": the configured CO2Sensor switch changed its level.delta:" + ppmDelta+" : "+ timeDelta, "module", "DeltaCO2Modul");
+                //self.controller.devices.emit(vDev.deviceId + ':exampleEmitOfDeltaCO2Modul');
+                self.startTime=new Date().getTime();
+            }else{
+                 //next step goto extern function
+                var ILevel=CO2Device.get("metrics:level");
+                var ITime=new Date().getTime();
+                self.mList[self.counter]=tLevel-ILevel/tTime-ITime;
+                self.counter++;
+                tLevel=ILevel;
+                tTime=ITime;
+                self.controller.addNotification("info", "CODeltaModul" + self.id + ": new m ", "module", "DeltaCO2Modul");
+
             }
         });
     }
