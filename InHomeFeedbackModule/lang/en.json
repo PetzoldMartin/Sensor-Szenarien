@@ -3,7 +3,11 @@
 	"m_descr":"This module inform people in the house over incoming actions.",
 	"l_visual_actuators":"Add some visual actuators",
 	"l_duration":"Set a duration (sec)",
+	"l_deferment":"Set a deferment (sec)",
 	"l_room_id":"Enter a room id",
 	"l_room_help":"You can find the room id in the Settings <span class='glyphicon glyphicon-arrow-right'></span> Rooms <span class='glyphicon glyphicon-arrow-right'></span>",
-	"l_cancel_switch":"Set a switch to signal that you want cancel the incoming action."
+	"l_cancel_switch":"Set a switch to signal that you want cancel the incoming action.",
+	"l_defer_switches":"Set defer switchtes",
+	"l_defer_switch":"Select a switch",
+	"l_defer_switch_duration":"Set the duration of deferment (sec)"
 }
