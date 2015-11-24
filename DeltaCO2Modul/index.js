@@ -9,13 +9,14 @@ DeltaCO2Modul.prototype.init = function (config) {
     var self = this;
     this.adultFound = false;
     this.deltaValueLastIntervall = 0;
-    this.measureIntervall = 0.0;
     this.personCount = 0;
     this.ppmValue = 40000;
     this.adultMinVolume = 8;
     this.waitingMinutes = 2;
     this.actualPpm = 0;
     this.startTime = new Date().getTime();
+    this.ppmList=[];
+    this.counter=0;
 
     var vDev = self.controller.devices.create(
             {
@@ -29,7 +30,7 @@ DeltaCO2Modul.prototype.init = function (config) {
                     }
                 },
                 overlay: {
-                    deviceType: "alarm",
+                    deviceType: "switchBinary",
                     metrics: {
                         icon: "/ZAutomation/api/v1/load/modulemedia/DeltaCO2Modul/icon.png"
                     }
@@ -71,14 +72,28 @@ DeltaCO2Modul.prototype.init = function (config) {
         self.controller.devices.on(CO2SensorId, "change:metrics:level", function () {
 
             var nTime = new Date().getTime();
-            if (self.startTime + self.waitingMinutes * 60000 < nTime || self.actualPpm === 0) {
+            if (self.startTime + (1/2) * 60000 < nTime) {
+                
                 var CO2Device = self.controller.devices.get(CO2SensorId);
-                var oldPpm = self.actualPpm;
-                self.actualPpm = CO2Device.get("metrics:level");
-                var ppmDelta = self.actualPpm - oldPpm;
+                self.startTime = nTime;
+                self.ppmList[self.counter]=CO2Device.get("metrics:level");
+                
+                if(self.counter===2*self.waitingMinutes){
+                var ppmDelta=0;   
+                for(var index = 0; index < self.ppmList.length-1; index++){
+                    ppmDelta+=self.ppmList[index]-self.ppmList[index+1];
+                   };
+                ppmDelta=ppmDelta/(self.ppmList.length-1);
                 self.controller.addNotification("info", "CODeltaModul" + self.id + ": the configured CO2Sensor switch changed its level.delta:" + ppmDelta, "module", "DeltaCO2Modul");
                 //self.controller.devices.emit(vDev.deviceId + ':exampleEmitOfDeltaCO2Modul');
-                self.startTime = nTime;
+            }
+                if(self.counter<=2*self.waitingMinutes){
+                    self.counter++;
+                }else{
+                    self.counter=0;
+                }
+                    
+                
             }
         });
     }
