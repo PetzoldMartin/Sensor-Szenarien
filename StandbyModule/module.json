@@ -1,0 +1,103 @@
+{
+	"singleton" : false,
+	"dependencies": [],
+	"category": "",
+	"author": "Simon Schwabe",
+	"homepage": "",
+	"icon": "icon.png",
+        "moduleName": "StandbyModule",
+	"version": "1.0.0",
+	"maturity": "stable",
+	"defaults" : {
+		"title" : "__m_title__",
+		"description" : "__m_descr__"
+	},
+	"schema" : {
+	    "type" : "object",
+	    "properties" : {
+			"switches": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"device": {
+							"field": "enum",
+							"datasource": "namespaces",
+							"enum": "namespaces:devices_switchBinary:deviceId",
+							"required": true
+						},
+						"status": {
+							"type": "integer",
+							"required": true,
+							"enum": ["off", "on"]
+						}
+					}
+				}
+			},
+			"dimmers": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"device": {
+							"field": "enum",
+							"datasource": "namespaces",
+							"enum": "namespaces:devices_switchMultilevel:deviceId",
+							"required": true
+						},
+						"status": {
+							"type": "integer",
+							"minimum": 0,
+							"maximum": 99,
+							"required": true
+						}
+					}
+				}
+			}
+	    },
+	    "required": true
+	},
+	"options": {
+	    "fields": {
+			"switches": {
+				"label": "__l_switches__",
+				"fields": {
+					"item": {
+						"fields": {
+							"device": {
+								"label": "",
+								"type": "select",
+								"datasource": "namespaces",
+								"field": "optionLabels",
+								"optionLabels": "namespaces:devices_switchBinary:deviceName"
+							},
+							"status": {
+								"label": "",
+								"optionLabels": ["__off__", "__on__"]
+							}
+						}
+					}
+				}
+			},
+			"dimmers": {
+				"label": "__l_dimmers__",
+				"fields": {
+					"item": {
+						"fields": {
+							"device": {
+								"label": "",
+								"type": "select",
+								"datasource": "namespaces",
+								"field": "optionLabels",
+								"optionLabels": "namespaces:devices_switchMultilevel:deviceName"
+							},
+							"status": {
+								"label": "__l_level__"
+							}
+						}
+					}
+				}
+			}
+	    }
+	}
+}

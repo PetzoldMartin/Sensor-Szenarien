@@ -1,0 +1,9 @@
+{
+	"m_title":"Standby Module",
+	"m_descr":"This module gets events from DoorLockModule and turns  configured devices in specified states.",
+	"on":"On",
+	"off":"Off",
+	"l_switches":"List of switches",
+	"l_dimmers":"List of dimmers",
+	"l_level":"Level"
+}
