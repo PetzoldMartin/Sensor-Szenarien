@@ -70,7 +70,7 @@ PersonCounterModule.prototype.init = function (config) {
                 }
                 break;
 			case "persons":
-                return vDev.metrics.persons;
+                return vDev.get("metrics.persons");
             break;
             }
         },
