@@ -1,0 +1,37 @@
+{
+	"singleton" : false,
+	"dependencies": [],
+	"category": "automation_basic",
+	"author": "Z-Wave.Me",
+	"homepage": "http://razberry.z-wave.me",
+	"icon": "icon.png",
+        "moduleName": "PersonCounterModule",
+	"version": "1.0.0",
+	"maturity": "stable",
+	"repository": {
+		"type": "git",
+		"source": "https://github.com/Z-Wave-Me/home-automation"
+	},
+	"defaults" : {
+		"title" : "__m_title__",
+		"description" : "__m_descr__"
+	},
+	"schema" : {
+		"type" : "object",
+		"properties" : {
+			"room": {
+				"type": "integer",
+				"required": true
+			}
+		}
+	},
+	"options": {
+		"fields": {
+			"room": {
+				"label": "__l_room_id__",
+				"type": "integer",
+				"helper": "__l_room_help__"
+			}
+		}
+	}
+}
