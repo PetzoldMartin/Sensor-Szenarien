@@ -1,0 +1,7 @@
+{
+	"m_title":"Turn Off Timer Modul",
+	"m_descr":"This app starts a timer with a defined time. After expiring the timer triggers a defined scene. The app requires at least two values to function: The count down time and the destination scene. <br><br>Settings:<br><ul><li>Select the destination scene that shall be triggered by the expired timer</li><li>Define the count down time in Seconds </li></ul>",
+	"r_l_options":"Restart timer if the defined command was send",
+	"l_triggeredScene":"Triggered scene after timer expired",
+	"l_countDown":"Count down time in seconds:"
+}
