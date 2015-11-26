@@ -1,0 +1,51 @@
+{
+	"singleton" : true,
+	"dependencies": [],
+	"category": "",
+	"author": "Simon Schwabe",
+	"homepage": "",
+	"icon": "icon.png",
+	"moduleName": "LockDoorModule",
+	"version": "1.0.0",
+	"maturity": "stable",
+	"defaults" : {
+		"title" : "__m_title__",
+		"description" : "__m_descr__"
+	},
+	"schema" : {
+	    "type" : "object",
+	    "properties" : {
+	        "doorLock": {
+	            "field": "enum",
+	            "datasource": "namespaces",
+	            "enum": "namespaces:devices_switchControl:deviceId"
+	        },
+			"switch": {
+	            "field": "enum",
+	            "datasource": "namespaces",
+	            "enum": "namespaces:devices_switchBinary:deviceId"
+	        }
+	    },
+	    "required": false
+	},
+	"options": {
+	    "fields": {
+	        "doorLock": {
+	            "label": "__door_lock__",
+	            "type": "select",
+	            "datasource": "namespaces",
+	            "field": "optionLabels",
+	            "optionLabels": "namespaces:devices_switchControl:deviceName",
+	            "helper": "__door_lock_help__"
+	        },
+			"switch": {
+	            "label": "switch",
+	            "type": "select",
+	            "datasource": "namespaces",
+	            "field": "optionLabels",
+	            "optionLabels": "namespaces:devices_switchBinary:deviceName",
+	            "helper": "for debugging and testing on localhost"
+	        }
+	    }
+	}
+}
