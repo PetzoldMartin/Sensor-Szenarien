@@ -72,40 +72,47 @@ InHomeFeedbackModule.prototype.init = function (config) {
         handler: function (command, args) { // processing of incoming commands over ZAutomation API
             // try it: http://localhost:8083/ZAutomation/api/v1/devices/InHomeFeedbackModule_42/command/c1?p1=42
             // ! pay attention to your actual virtual device id 'InHomeFeedbackModule_42'
-            if (command === "start") {
-                // store duration in module object to get access in transition of state machine
-                self.duration = self.config.duration;
-                if (args.duration) {
-                    self.duration = args.duration;
+			
+			// pass commands to state machine
+            if (self.fsm.hasOwnProperty(command)) {
+				
+				// check if event is allowed in current state
+				if(self.fsm.can(command)) {
+                    
+					if (command === "start") {
+						// store duration in module object to get access in transition of state machine
+						self.duration = self.config.duration;
+						if (args.duration) {
+							self.duration = args.duration;
+						}
+					}
+					
+					if (command == "defer") {
+						// store defer in module object to get access in transition of state machine
+						self.defermentDuration = self.config.deferment;
+						if (args.duration) {
+							self.defermentDuration = args.duration;
+						}
+					}
+					
+					// ... transition
+					self.fsm[command]();
+					
+					return {
+                        'code': 0,
+                        'message': 'OK - command processed.'
+                    }
+                } else {
+                    return {
+                        'code': 2,
+                        'message': 'Error - command is not allowed in state ' + self.fsm.current + '!',
+                        'allowed': self.fsm.transitions()
+                    }
                 }
-
-                // transition ...
-                self.fsm.start();
-
-			} else if (command === "stop") {
-
-                // transition ...
-                self.fsm.stop();
-
-            } else if (command == "cancel") {
-
-                // transition
-                self.fsm.cancel();
-
-            } else if (command == "defer") {
-                // store defer in module object to get access in transition of state machine
-                self.defermentDuration = self.config.deferment;
-                if (args.duration) {
-                    self.defermentDuration = args.duration;
-                }
-
-                // transition
-                self.fsm.defer();
-
             } else {
                 return {
                     'code': 1,
-                    'message': 'OK - Error - command is not definied!'
+                    'message': 'Error - command is not definied!'
                 }
             }
         },
@@ -129,7 +136,7 @@ InHomeFeedbackModule.prototype.init = function (config) {
     self.config.deferSwitches.forEach(function(el) {
         self.controller.devices.on(el.deferSwitch, "change:metrics:level", function() {
             self.defermentDuration = el.deferSwitchDuration;
-            
+
             self.fsm.defer();
         });
     });
