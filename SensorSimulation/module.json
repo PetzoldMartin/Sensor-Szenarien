@@ -1,0 +1,44 @@
+{
+	"singleton" : false,
+	"dependencies": [],
+	"category": "",
+	"author": "Patrick Hecker, Simon Schwabe",
+	"homepage": "",
+	"icon": "icon.png",
+        "moduleName": "SensorSimulation",
+	"version": "1.0.0",
+	"maturity": "stable",
+	"defaults" : {
+		"title" : "__m_title__",
+		"description" : "__m_descr__"
+	},
+	"schema" : {
+		"type" : "object",
+		"properties" : {
+			"dummyDevices": {
+				"type": "array",
+				"items": {
+					"field": "enum",
+					"datasource": "namespaces",
+					"enum": "namespaces:devices_sensorMultilevel:deviceId",
+					"required": true
+				}
+			}
+		}
+	},
+	"options": {
+		"fields": {
+			"dummyDevices": {
+				"label": "__l_dummy_devices__",
+				"fields": {
+					"item": {
+						"type": "select",
+						"datasource": "namespaces",
+						"field": "optionLabels",
+						"optionLabels": "namespaces:devices_sensorMultilevel:deviceName"
+					}
+				}
+			}
+		}
+	}
+}
