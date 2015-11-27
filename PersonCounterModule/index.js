@@ -1,6 +1,6 @@
 /*** PersonCounterModule ***
 
-Version: 1.1.0
+Version: 1.1.2
 -----------------------------------------------------------------------------
 Author: Philip Laube <phl111fg@fh-zwickau.de>, Patrick Hecker <pah111kg@fh-zwickau.de>, Simon Schwabe <sis111su@fh-zwickau.de>
 Description:
@@ -36,8 +36,8 @@ PersonCounterModule.prototype.init = function (config) {
         defaults: {
             metrics: {
                 title: 'PersonCounterModule ' + this.id,
-				persons: 0,							         // !
-                roomId: -1
+                roomId: -1,
+                level: 0
             }
         },
         overlay: {
@@ -52,25 +52,26 @@ PersonCounterModule.prototype.init = function (config) {
 			}
         },
         handler: function (command, args) {					// Processing of incoming commands over ZAutomation API
-            var persons = vDev.get("metrics:persons");
+            var persons = vDev.get("metrics:level");
             var room = vDev.get("metrics:roomId");
+            var eventID = deviceId + ':PersonCounterModule_' + room + '_person_';
 			switch(command){
             case "person_entered" :
                 vDev.set("metrics:persons", persons + 1);
                 // for debugging and testing
-                self.controller.addNotification("info", "Person entered room "+ room +" (new value: " + vDev.get("metrics:persons") + " persons)", "module", "PersonCounterModule");
-                self.controller.devices.emit('PersonCounterModule_' + vDev.deviceId + '_person_entered');
+                self.controller.addNotification("info", "Person entered room "+ room +" (new value: " + persons + 1 + " persons)", "module", "PersonCounterModule");
+                self.controller.devices.emit(eventID + 'entered');
                 break;
 			case "person_left":
                 if (persons > 0){
                     vDev.set("metrics:persons", persons - 1);
                     // for debugging and testing
-                    self.controller.addNotification("info", "Person left room "+ room +" (new value: " + vDev.get("metrics:persons") + " persons)", "module", "PersonCounterModule");
-                    self.controller.devices.emit('PersonCounterModule_' + vDev.deviceId + '_person_left');
+                    self.controller.addNotification("info", "Person left room "+ room +" (new value: " + persons - 1 + " persons)", "module", "PersonCounterModule");
+                    self.controller.devices.emit(eventID + 'left');
                 }
                 break;
 			case "persons":
-                return vDev.get("metrics.persons");
+                return vDev.get("metrics:level");
             break;
             }
         },
