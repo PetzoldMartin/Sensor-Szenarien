@@ -1,8 +1,8 @@
-/*** RoomAccessControlDevice module ***
+/*** RoomAccessModule module ***
 
-Version: 1.0.0
+Version: 1.1.0
 -----------------------------------------------------------------------------
-Author: Patrick Hecker <pah111kg@fh-zwickau.de>, Simon Schwabe <sis111su@fh-zwickau.de>
+Author: Philip Laube <phl111fg@fh-zwickau.de>, Patrick Hecker <pah111kg@fh-zwickau.de>, Simon Schwabe <sis111su@fh-zwickau.de>
 Description:
     Creates a room access control device
 ******************************************************************************/
@@ -11,21 +11,21 @@ Description:
 // --- Class definition, inheritance and setup
 // ----------------------------------------------------------------------------
 
-function RoomAccessControlDevice (id, controller) {
+function RoomAccessModule (id, controller) {
     // Call superconstructor first (AutomationModule)
-    RoomAccessControlDevice.super_.call(this, id, controller);
+    RoomAccessModule.super_.call(this, id, controller);
 }
 
-inherits(RoomAccessControlDevice, AutomationModule);
+inherits(RoomAccessModule, AutomationModule);
 
-_module = RoomAccessControlDevice;
+_module = RoomAccessModule;
 
 // ----------------------------------------------------------------------------
 // --- Module instance initialized
 // ----------------------------------------------------------------------------
 
-RoomAccessControlDevice.prototype.init = function (config) {
-    RoomAccessControlDevice.super_.prototype.init.call(this, config);
+RoomAccessModule.prototype.init = function (config) {
+    RoomAccessModule.super_.prototype.init.call(this, config);
 
     var self = this;
 
@@ -35,20 +35,20 @@ RoomAccessControlDevice.prototype.init = function (config) {
 	// Virtuel Device Definition
 	// This object defines the interface for the ZAutomation API and the UI (Elements)
 	var vDev = self.controller.devices.create({
-        deviceId: "RoomAccessControlDevice_" + this.id,			// Identifier for ZAutomation API
+        deviceId: "RoomAccessModule_" + this.id,			// Identifier for ZAutomation API
         defaults: {
             metrics: {
-                title: 'RoomAccessControlDevice ' + this.id,
+                title: 'RoomAccessModule ' + this.id,
                 roomId: -1
             }
         },
         overlay: {
-            deviceType: "roomAccessControlDevice",
+            deviceType: "RoomAccessModule",
             metrics: {
 				// this is the icon for the elements view
 				// icon is located in the modules 'htdocs' folder
 				// 'PersonCounterDevice' from the link below is the module class name
-				icon: "/ZAutomation/api/v1/load/modulemedia/RoomAccessControlDevice/icon.png"
+				icon: "/ZAutomation/api/v1/load/modulemedia/RoomAccessModule/icon.png"
 			}
         },
         moduleId: this.id
@@ -68,7 +68,7 @@ RoomAccessControlDevice.prototype.init = function (config) {
 
                 if(level == 'on') {
                     self.lastEventMotionSensorIn = new Date().getTime();
-                    self.controller.addNotification("info", "RoomAccessControlDevice (" + self.id + "): Motion Sensor One (" + motionSensorIn + ") for room (" + self.config.room + ") fired", "module", "RoomAccessControlDevice");
+                    self.controller.addNotification("info", "RoomAccessModule (" + self.id + "): Motion Sensor One (" + motionSensorIn + ") for room (" + self.config.room + ") fired", "module", "RoomAccessModule");
 
                     if(new Date().getTime() - self.lastEventMotionSensorOut < 10000) {
                         self.controller.devices.emit(vDev.deviceId + ':personEnterRoom');
@@ -84,7 +84,7 @@ RoomAccessControlDevice.prototype.init = function (config) {
 
                 if(level == 'on') {
                     self.lastEventMotionSensorOut = new Date().getTime();
-                    self.controller.addNotification("info", "RoomAccessControlDevice (" + self.id + "): Motion Sensor Two (" + motionSensorOut + ") for room (" + self.config.room + ") fired", "module", "RoomAccessControlDevice");
+                    self.controller.addNotification("info", "RoomAccessModule (" + self.id + "): Motion Sensor Two (" + motionSensorOut + ") for room (" + self.config.room + ") fired", "module", "RoomAccessModule");
 
                     if(new Date().getTime() - self.lastEventMotionSensorIn < 10000) {
                         self.controller.devices.emit(vDev.deviceId + ':personLeaveRoom');
@@ -102,7 +102,7 @@ RoomAccessControlDevice.prototype.init = function (config) {
     vDev.set("metrics:roomId", this.config.room);
 };
 
-RoomAccessControlDevice.prototype.stop = function () {
+RoomAccessModule.prototype.stop = function () {
     var self = this;
 
     this.config.roomAccessControls.forEach(function(roomAccessControl) {
@@ -116,9 +116,9 @@ RoomAccessControlDevice.prototype.stop = function () {
         }
     });
 
-    this.controller.devices.remove("RoomAccessControlDevice_" + this.id);
+    this.controller.devices.remove("RoomAccessModule_" + this.id);
 
-    RoomAccessControlDevice.super_.prototype.stop.call(this);
+    RoomAccessModule.super_.prototype.stop.call(this);
 };
 
 
