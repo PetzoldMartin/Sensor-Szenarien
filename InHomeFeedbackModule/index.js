@@ -124,6 +124,9 @@ InHomeFeedbackModule.prototype.init = function (config) {
         },
         moduleId: this.id
     });
+
+    vDev.set("metrics:level", "Initialized");
+
     self.vDev = vDev;
 
     // save the room id in metrics:roomId field of virtual device
@@ -362,7 +365,11 @@ InHomeFeedbackModule.prototype.initFSM = function() {
     });
 
     function startTrans(event, from, to) {
-        self.controller.addNotification("info", "InHomeFeedbackModule start feedback mechanism for the next " + self.duration + " seconds.", "module", "InHomeFeedbackModule");
+        if (self.endless) {
+            self.controller.addNotification("info", "InHomeFeedbackModule start feedback mechanism.", "module", "InHomeFeedbackModule");
+        } else {
+            self.controller.addNotification("info", "InHomeFeedbackModule start feedback mechanism for the next " + self.duration + " seconds.", "module", "InHomeFeedbackModule");
+        }
 
         // emit event: [deviceId]:feedback_module_[roomId]_started
         self.controller.devices.emit(self.vDev.deviceId + ':InHomeFeedbackModule_' + self.vDev.get("metrics:roomId") + '_started');
@@ -394,7 +401,7 @@ InHomeFeedbackModule.prototype.initFSM = function() {
 
         // emit event: [deviceId]:feedback_module_[roomId]_stopped_normal
         self.controller.devices.emit(self.vDev.deviceId + ':InHomeFeedbackModule_' + self.vDev.get("metrics:roomId") + '_stopped_normal');
-    }
+    };
 
     function cancelTrans(event, from, to) {
         self.controller.addNotification("info", "In Home Feedback Module canceled feedback mechanism by user.", "module", "InHomeFeedbackModule");
