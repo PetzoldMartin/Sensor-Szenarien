@@ -12,11 +12,25 @@ DeltaCO2Modul.prototype.init = function (config) {
     this.personCount = 0;
     this.ppmValue = 40000;
     this.adultMinVolume = 8;
-    this.waitingMinutes = 2;
-    this.actualPpm = 0;
-    this.startTime = new Date().getTime();
-    this.mList = [];
-    this.counter = 0;
+    this.waitingMinutes = 0.25;
+    this.measuredata = {
+        xList: new Array(),
+        yList: new Array(),
+        counter: 0,
+        startTime: 0
+    };
+    
+    this.measuredata.getLastmeasurement=function(){
+      if( this.yList.length===0){
+          return "no Measurement yet avaible";
+      }else{
+         return this.yList[this.yList.length-1] ;
+      };  
+    };
+    this.line = {
+        a: 0,
+        b: 0
+    };
 
     var vDev = self.controller.devices.create(
             {
@@ -42,7 +56,7 @@ DeltaCO2Modul.prototype.init = function (config) {
                         if (command === "giveData") {
                             return {
                                 'personCount': self.personCount,
-                                'lastDeltaValue': self.deltaValueLastIntervall
+                                'lastDeltaValue': self.measuredata.getLastmeasurement()
                             };
                         } else {
                             if (command === "setPersons") {
@@ -67,56 +81,43 @@ DeltaCO2Modul.prototype.init = function (config) {
 
 
     var CO2SensorId = self.config.CO2Sensor;
-    //CO2Device = self.controller.devices.get(CO2SensorId);
-    var tLevel=0;//this.CO2Device.get("metrics:level");
-    var tTime=new Date().getTime();
+    //var CO2Device2 = self.controller.devices.get(CO2SensorId);
+    //var tLevel=CO2Device2.get("metrics:level");
+
 
     if (CO2SensorId) {
         self.controller.devices.on(CO2SensorId, "change:metrics:level", function () {
             var CO2Device = self.controller.devices.get(CO2SensorId);
-
-            if(tLevel===0){
-                tLevel=CO2Device.get("metrics:level");
-            }
             self.controller.addNotification("info", "CODeltaModul" + self.id + ": nochanges:", "module", "DeltaCO2Modul");
-            self.controller.devices.emit(vDev.deviceId + ':exampleEmitOfDeltaCO2Modul');
+            //self.controller.devices.emit(vDev.deviceId + ':exampleEmitOfDeltaCO2Modul');
+            if (self.measuredata.xList.length === 0) {
+                self.measuredata.startTime = new Date().getTime();
+                self.makeMeasurePoint(CO2Device, self.measuredata);
+                    //self.controller.addNotification("info", "CODeltaModul" + self.id + ": new m " + self.measuredata.yList[self.measuredata.counter - 1] + "time:"+self.measuredata.xList[self.measuredata.counter - 1]+ " counter: " + self.measuredata.counter, "module", "DeltaCO2Modul");
 
-            var nTime = new Date().getTime();
-            if (self.startTime + self.waitingMinutes * 60000 < nTime) {
-                //next step goto extern function
-                var ILevel=CO2Device.get("metrics:level");
-                var ITime=new Date().getTime();
-                self.mList[self.counter]=tLevel-ILevel/tTime-ITime;
-                self.counter++;
-                tLevel=ILevel;
-                tTime=ITime;
-                self.controller.addNotification("info", "CODeltaModul" + self.id + ": new m ", "module", "DeltaCO2Modul");
-                
-                self.counter=0;
-                var delta=0;
-                var timeDelta=self.startTime-new Date().getTime();
-                for(var index = 0; index < self.mList.length; index++) {
-                  
-                  delta+=self.mList[index];
+            } else {
+                if (self.measuredata.startTime + self.waitingMinutes * 60000 < new Date().getTime()) {
+                    self.makeMeasurePoint(CO2Device, self.measuredata);
+                    self.line = self.getRegressionLineParameter(self.measuredata, self.line);
+                    var delta =(self.getRegressionLineValue(self.line, self.measuredata.xList[self.measuredata.xList.length - 1])) - (self.getRegressionLineValue(self.line, self.measuredata.xList[0]));
+                    self.measuredata = {
+                        xList: new Array(),
+                        yList: new Array(),
+                        counter: 0,
+                        startTime: 0
+                    };
+                    self.controller.addNotification("info", "CODeltaModul" + self.id + ": the configured CO2Sensor switch changed its level.delta:" + delta + " a:" + self.line.a + " b: " + self.line.b, "module", "DeltaCO2Modul");
+                } else {
+                    self.makeMeasurePoint(CO2Device, self.measuredata);
+                    //self.controller.addNotification("info", "CODeltaModul" + self.id + ": new m " + self.measuredata.yList[self.measuredata.counter - 1] + "time:"+self.measuredata.xList[self.measuredata.counter - 1]+ " counter: " + self.measuredata.counter, "module", "DeltaCO2Modul");
+
                 }
-                var ppmDelta=delta/timeDelta;
-                self.controller.addNotification("info", "CODeltaModul" + self.id + ": the configured CO2Sensor switch changed its level.delta:" + ppmDelta+" : "+ timeDelta, "module", "DeltaCO2Modul");
-                //self.controller.devices.emit(vDev.deviceId + ':exampleEmitOfDeltaCO2Modul');
-                self.startTime=new Date().getTime();
-            }else{
-                 //next step goto extern function
-                var ILevel=CO2Device.get("metrics:level");
-                var ITime=new Date().getTime();
-                self.mList[self.counter]=tLevel-ILevel/tTime-ITime;
-                self.counter++;
-                tLevel=ILevel;
-                tTime=ITime;
-                self.controller.addNotification("info", "CODeltaModul" + self.id + ": new m ", "module", "DeltaCO2Modul");
-
             }
         });
     }
 };
+
+
 DeltaCO2Modul.prototype.stop = function () {
     // here you should remove all registred listeners
 
@@ -125,6 +126,40 @@ DeltaCO2Modul.prototype.stop = function () {
     DeltaCO2Modul.super_.prototype.stop.call(this);
 };
 // here you can add your own functions ...
+DeltaCO2Modul.prototype.makeMeasurePoint = function (CO2Device, measureData) {
+    measureData.xList.push((new Date().getTime() - measureData.startTime));
+    measureData.yList.push(CO2Device.get("metrics:level"));
+    measureData.counter++;
+    return measureData;
+
+};
+
+DeltaCO2Modul.prototype.getRegressionLineValue = function (line, x) {
+    return line.a * x + line.b;
+};
+
+DeltaCO2Modul.prototype.getRegressionLineParameter = function (measuredata, line) {
+    var delta = 0;
+    var sumXY = 0;
+    var sumX = 0;
+    var sumY = 0;
+    var sumX2 = 0;
+
+    for (var count = 0; count < measuredata.xList.length; count++) {
+        sumXY += measuredata.xList[count] * measuredata.yList[count];
+        sumX += measuredata.xList[count];
+        sumY += measuredata.yList[count];
+        sumX2 += measuredata.xList[count] * measuredata.xList[count];
+    }
+    delta = measuredata.xList.length * sumX2 - (sumX * sumX);
+    line.a = (measuredata.xList.length * sumXY - (sumX *sumY)) / delta;
+    line.b = ((sumX2 * sumY) - (sumX * sumXY)) / delta;
+    return line;
+
+
+
+
+};
 
 DeltaCO2Modul.prototype.getppmChangePerAdult = function (roomVolume) {
     var ppm = this.ppmValue * this.adultMinVolume / roomVolume;
