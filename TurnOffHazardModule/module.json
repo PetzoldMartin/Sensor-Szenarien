@@ -1,0 +1,53 @@
+{
+	"singleton" : false,
+	"dependencies": [],
+	"category": "",
+	"author": "Tobias Weise, Patrick Hecker",
+	"homepage": "",
+	"icon": "icon.png",
+        "moduleName": "TurnOffHazardModule",
+	"version": "1.0.0",
+	"maturity": "stable",
+	"defaults" : {
+		"title" : "__m_title__",
+		"description" : "__m_descr__"
+	},
+	"schema" : {
+		"type" : "object",
+		"properties" : {
+			"room": {
+				"type": "integer",
+				"required": true
+			},
+			"hazards": {
+				"type": "array",
+				"items": {
+					"field": "enum",
+					"datasource": "namespaces",
+					"enum": "namespaces:devices_switchMultilevel:deviceId, namespaces:devices_switchBinary:deviceId",
+					"required": true
+				}
+			}
+		}
+	},
+	"options": {
+		"fields": {
+			"room": {
+				"label": "__l_room_id__",
+				"type": "integer",
+				"helper": "__l_room_help__"
+			},
+			"hazards": {
+				"label": "__l_hazards__",
+				"fields": {
+					"item": {
+						"type": "select",
+						"datasource": "namespaces",
+						"field": "optionLabels",
+						"optionLabels": "namespaces:devices_switchMultilevel:deviceName, namespaces:devices_switchBinary:deviceName"
+					}
+				}
+			}
+		}
+	}
+}

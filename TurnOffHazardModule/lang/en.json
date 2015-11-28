@@ -1,0 +1,7 @@
+{
+	"m_title":"Turn Off Hazard Module",
+	"m_descr":"This module demonstrates some of the concepts for the development with Z-Way.",
+	"l_room_id":"Enter a room id",
+	"l_room_help":"You can find the room id in the Settings <span class='glyphicon glyphicon-arrow-right'></span> Rooms <span class='glyphicon glyphicon-arrow-right'></span> Edit the specific room <span class='glyphicon glyphicon-arrow-right'></span> last character in the URL",
+	"l_hazards":"Add some hazards"
+}
