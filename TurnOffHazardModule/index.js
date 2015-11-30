@@ -52,19 +52,29 @@ TurnOffHazardModule.prototype.init = function (config) {
         },
         handler: function (command, args) { // processing of incoming commands over ZAutomation API
             if(command === "hazardOff") {
+                var turnOffTimerDuration = 60;
+
                 // start turn off timer
                 var turnOffTimerModule = self.controller.devices.get(vDev.get('metrics:turnOffTimerModuleId'));
-                turnOffTimerModule.performCommand('start_timer', {'time': 60});
+                turnOffTimerModule.performCommand('start_timer', {'time': turnOffTimerDuration});
 
                 // if turn off timer expired
                 self.controller.devices.on(vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.room + "_expired", function() {
-    				self.turnOffAllHazards();
+                    self.controller.devices.off(self.vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.room + "_expired", function() {});
+                    self.turnOffAllHazards();
                 });
 
                 // if turn off timer canceled
                 self.controller.devices.on(vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.room + "_canceled", function() {
-    				// don't turn off any hazards
+                    self.controller.devices.off(self.vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.room + "_canceled", function() {});
+                    // don't turn off any hazards
                 });
+
+                // unsubscribe event's after the double time off timer time (in the case that the turn off timer module does not work properly)
+                self.unsubscribeEvents = setTimeout(function() {
+                    self.controller.devices.off(self.vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.room + "_expired", function() {});
+                    self.controller.devices.off(self.vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.room + "_canceled", function() {});
+                }, turnOffTimerDuration * 2 * 1000);
 
                 // send a response: all OK ...
                 return {
@@ -81,6 +91,8 @@ TurnOffHazardModule.prototype.init = function (config) {
         moduleId: this.id
     });
 
+    self.vDev = vDev;
+
     // Wait for event core.start, which indicates, that all modules are loaded.
     // Otherwise an exception will be thrown, because the module can not be used.
     // ATTENTION!
@@ -96,6 +108,13 @@ TurnOffHazardModule.prototype.init = function (config) {
 
 TurnOffHazardModule.prototype.stop = function () {
     var self = this;
+
+    self.controller.devices.off(self.vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.room + "_expired", function() {});
+    self.controller.devices.off(self.vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.room + "_canceled", function() {});
+
+    if (self.unsubscribeEvents) {
+        clearTimeout(self.unsubscribeEvents);
+    }
 
     this.controller.devices.remove("TurnOffHazardModule_" + this.id);
 
