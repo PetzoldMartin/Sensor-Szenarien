@@ -68,7 +68,7 @@ LockDoorModule.prototype.init = function (config) {
                 vDev.set("metrics:level", "standby finished")
                 // standby mode should be finished
                 // self.controller.devices.emit(vDev.deviceId + ':door_lock_module_unlocked');
-                self.controller.devices.emit("door_lock_module_unlocked");
+                self.controller.devices.emit("LockDoorModule_unlocked");
             } else if (switchVDev.get("metrics:level") == "on") {
                 // standby mode should be started
                 vDev.set("metrics:level", "time to enter standby");
@@ -109,7 +109,7 @@ LockDoorModule.prototype.init = function (config) {
 
 
                 // self.controller.devices.emit(vDev.deviceId + ':door_lock_module_locked');
-                self.controller.devices.emit("door_lock_module_locked");
+                self.controller.devices.emit("LockDoorModule_locked");
             }
 
             // console.log("LockDoorModule DEVID: " + vDev.deviceId);

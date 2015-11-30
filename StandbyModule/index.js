@@ -54,13 +54,13 @@ StandbyModule.prototype.init = function (config) {
         moduleId: this.id
     });
 
-    self.controller.devices.on('door_lock_module_locked', function() {
+    self.controller.devices.on('LockDoorModule_locked', function() {
         // set configured devices in defined standby state
 
         vDev.set("metrics:level", "put devices to standby");
     });
 
-    self.controller.devices.on('door_lock_module_unlocked', function() {
+    self.controller.devices.on('LockDoorModule_unlocked', function() {
         vDev.set("metrics:level", "finished standby");
     });
 };
@@ -68,7 +68,8 @@ StandbyModule.prototype.init = function (config) {
 StandbyModule.prototype.stop = function () {
     this.controller.devices.remove("StandbyModule_" + this.id);
 
-    this.controller.devices.off('door_lock_module_locked', function(){});
+    this.controller.devices.off('LockDoorModule_locked', function(){});
+    this.controller.devices.off('LockDoorModule_unlocked', function(){});
 
     StandbyModule.super_.prototype.stop.call(this);
 };
