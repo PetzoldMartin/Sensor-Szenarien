@@ -1,0 +1,33 @@
+{
+	"singleton": false,
+	"dependencies": [],
+	"category": "",
+	"author": "Tobias Weise",
+	"homepage": "",
+	"icon": "icon.png",
+        "moduleName": "TurnOffTimerModule",
+	"version": "1.0.0",
+	"maturity": "stable",
+	"defaults": {
+		"title": "__m_title__",
+		"description": "__m_descr__"
+	},
+	"schema" : {
+		"type" : "object",
+		"properties" : {
+			"room": {
+				"type": "integer",
+				"required": true
+			}
+		}
+	},
+	"options": {
+		"fields": {
+			"room": {
+				"label": "__l_room_id__",
+				"type": "integer",
+				"helper": "__l_room_help__"
+			}
+		}
+	}
+}
