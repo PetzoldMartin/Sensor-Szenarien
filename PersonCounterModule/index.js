@@ -57,7 +57,6 @@ PersonCounterModule.prototype.init = function (config) {
             var eventID = vDev.deviceId + ':PersonCounterModule_' + room + '_person_';
 			switch(command){
             case "person_entered" :
-                vDev.set("metrics:persons", persons + 1);
                 vDev.set('metrics:level', persons + 1);
                 // for debugging and testing
                 self.controller.addNotification("info", "Person entered room "+ room +" (new value: " + persons + 1 + " persons)", "module", "PersonCounterModule");
@@ -65,7 +64,6 @@ PersonCounterModule.prototype.init = function (config) {
                 break;
 			case "person_left":
                 if (persons > 0){
-                    vDev.set("metrics:persons", persons - 1);
                     vDev.set('metrics:level', persons - 1);
                     // for debugging and testing
                     self.controller.addNotification("info", "Person left room "+ room +" (new value: " + persons - 1 + " persons)", "module", "PersonCounterModule");
