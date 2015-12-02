@@ -15,12 +15,12 @@
     "schema": {
         "type": "object",
         "properties": {
-            "CO2Sensor": {
+            "cO2Sensor": {
                 "field": "enum",
                 "datasource": "namespaces",
                 "enum": "namespaces:devices_sensorMultilevel:deviceId"
             },
-            "DoorWindowContacts": {
+            "doorWindowContacts": {
                 "type": "array",
                 "items": {
                     "field": "enum",
@@ -29,7 +29,7 @@
                     "required": false
                 }
             },
-            "PeopleSizeMeasurement": {
+            "peopleSizeMeasurement": {
                 "type": "array",
                 "items": {
                     "field": "enum",
@@ -38,15 +38,15 @@
                     "required": false
                 }
             },
-            "RoomHigh": {
+            "roomHigh": {
                 "type": "integer",
                 "required": true
             },
-            "RoomWidth": {
+            "roomWidth": {
                 "type": "integer",
                 "required": true
             },
-            "RoomLength": {
+            "roomLength": {
                 "type": "integer",
                 "required": true
             },
@@ -54,7 +54,7 @@
                 "type": "integer",
                 "required": true
             },
-            "PersonCounter": {
+            "personCounter": {
                 "field": "enum",
                 "datasource": "namespaces",
                 "enum": "namespaces:devices_sensorMultilevel:deviceId",
@@ -67,7 +67,7 @@
     },
     "options": {
         "fields": {
-            "CO2Sensor": {
+            "cO2Sensor": {
                 "label": "__l_CO2_Sensor__",
                 "type": "select",
                 "datasource": "namespaces",
@@ -75,7 +75,7 @@
                 "optionLabels": "namespaces:devices_sensorMultilevel:deviceName",
                 "helper": "__l_CO2_Sensor_help__"
             },
-            "DoorWindowContacts": {
+            "doorWindowContacts": {
                 "label": "__l_DoorWindowContacts__",
                 "fields": {
                     "item": {
@@ -86,7 +86,7 @@
                     }
                 }
             },
-            "PeopleSizeMeasurement": {
+            "peopleSizeMeasurement": {
                 "label": "__l_SizeMeasurement__",
                 "fields": {
                     "item": {
@@ -97,17 +97,17 @@
                     }
                 }
             },
-            "RoomHigh": {
+            "roomHigh": {
                 "label": "__l_RoomHigh__",
                 "type": "integer",
                 "placeholder": "__l_RoomHigh_placeholder__"
             },
-            "RoomWidth": {
+            "roomWidth": {
                 "label": "__l_RoomWidth__",
                 "type": "integer",
                 "placeholder": "__l_RoomWidth_placeholder__"
             },
-            "RoomLength": {
+            "roomLength": {
                 "label": "__l_RoomLength__",
                 "type": "integer",
                 "placeholder": "__l_RoomLength_placeholder__"
@@ -117,7 +117,7 @@
                 "type": "integer",
                 "helper": "__l_room_help__"
             },
-            "PersonenCounter": {
+            "personenCounter": {
                 "label": "__l_PersonenCounter__",
                 "type": "select",
                 "datasource": "namespaces",

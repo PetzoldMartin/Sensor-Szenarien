@@ -10,8 +10,10 @@ PersonIdentificationModule.prototype.init = function (config) {
     this.adultFound = false;
     this.deltaValueLastIntervall = 0;
     this.personCount = 0;
+    this.adultCount = 0;
+
     this.ppmValue = 40000;
-    this.adultMinVolume = 8;
+    this.volumeLMBorder = 7.5;
     this.waitingMinutes = 0.25;
     this.measuredata = {
         xList: new Array(),
@@ -92,20 +94,19 @@ PersonIdentificationModule.prototype.init = function (config) {
             });
     self.vDev = vDev;
 
-    var CO2SensorId = self.config.CO2Sensor;
-
-    if (CO2SensorId) {
-        self.controller.devices.on(CO2SensorId, "change:metrics:level", function () {
+    var cO2SensorId = self.config.cO2Sensor;
+    if (cO2SensorId) {
+        self.controller.devices.on(cO2SensorId, "change:metrics:level", function () {
             //some seeing of overdriven measurepoints
-            var CO2Device = self.controller.devices.get(CO2SensorId);
-            self.controller.addNotification("info", "PersonIdentificationModule" + self.id + ": nochanges:", "module", "PersonIdentificationModule");
+            var cO2Device = self.controller.devices.get(cO2SensorId);
+            //self.controller.addNotification("info", "PersonIdentificationModule" + self.id + ": nochanges:", "module", "PersonIdentificationModule");
             //self.controller.devices.emit(vDev.deviceId + ':exampleEmitOfPersonIdentificationModule');
             if (self.measuredata.xList.length === 0) {
                 self.measuredata.startTime = new Date().getTime();
-                self.makeMeasurePoint(CO2Device, self.measuredata);
+                self.makeMeasurePoint(cO2Device, self.measuredata);
             } else {
                 if (self.measuredata.startTime + self.waitingMinutes * 60000 < new Date().getTime()) {
-                    self.makeMeasurePoint(CO2Device, self.measuredata);
+                    self.makeMeasurePoint(cO2Device, self.measuredata);
                     self.line = self.getRegressionLineParameter(self.measuredata, self.line);
                     var delta = (self.getRegressionLineValue(self.line, self.measuredata.xList[self.measuredata.xList.length - 1])) - (self.getRegressionLineValue(self.line, self.measuredata.xList[0]));
                     self.measuredata = {
@@ -114,20 +115,30 @@ PersonIdentificationModule.prototype.init = function (config) {
                         counter: 0,
                         startTime: 0
                     };
-                    self.controller.addNotification("info", "PersonIdentificationModule" + self.id + ": the configured CO2Sensor switch changed its level.delta:" + delta + " a:" + self.line.a + " b: " + self.line.b, "module", "PersonIdentificationModule");
+                    self.controller.addNotification("info", "PersonIdentificationModule" + self.id + ": the configured cO2Sensor switch changed its level.delta:" + delta + " a:" + self.line.a + " b: " + self.line.b, "module", "PersonIdentificationModule");
                 } else {
-                    self.makeMeasurePoint(CO2Device, self.measuredata);
+                    self.makeMeasurePoint(cO2Device, self.measuredata);
                 }
             }
         });
     }
+    
+   var persoCounterId= self.config.personCounter;
+   if(persoCounterId){
+        self.controller.devices.on(persoCounterId, "change:metrics:level", function () {
+       var personCounterDevice=self.controller.devices.get(persoCounterId);
+       self.personCount=personCounterDevice.get("metrics:level");
+       //self.controller.addNotification("info", "PersonIdentificationModule has see people "+self.personCount , "module", "PersonIdentificationModule");
+
+   });
+   }
 };
 
 
 PersonIdentificationModule.prototype.stop = function () {
     // here you should remove all registred listeners
-    this.controller.devices.remove(this.config.CO2Sensor, "change:metrics:level", function () {});
-
+    this.controller.devices.remove(this.config.cO2Sensor, "change:metrics:level", function () {});
+    this.controller.devices.on(this.config.personCounter, "change:metrics:level", function () {});
     this.controller.devices.remove("PersonIdentificationModule_" + this.id);
     PersonIdentificationModule.super_.prototype.stop.call(this);
 
