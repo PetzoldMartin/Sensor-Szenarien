@@ -36,7 +36,7 @@ PersonCounterModule.prototype.init = function (config) {
         defaults: {
             metrics: {
                 title: 'PersonCounterModule ' + this.id,
-                roomId: -1,
+                room: -1,
                 level: 0
             }
         },
@@ -53,7 +53,7 @@ PersonCounterModule.prototype.init = function (config) {
         },
         handler: function (command, args) {					// Processing of incoming commands over ZAutomation API
             var persons = vDev.get("metrics:level");
-            var room = vDev.get("metrics:roomId");
+            var room = vDev.get("metrics:room");
             var eventID = vDev.deviceId + ':PersonCounterModule_' + room + '_person_';
 			switch(command){
             case "person_entered" :
