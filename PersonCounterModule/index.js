@@ -54,7 +54,7 @@ PersonCounterModule.prototype.init = function (config) {
         handler: function (command, args) {					// Processing of incoming commands over ZAutomation API
             var persons = vDev.get("metrics:level");
             var room = vDev.get("metrics:roomId");
-            var eventID = deviceId + ':PersonCounterModule_' + room + '_person_';
+            var eventID = vDev.deviceId + ':PersonCounterModule_' + room + '_person_';
 			switch(command){
             case "person_entered" :
                 vDev.set("metrics:persons", persons + 1);
