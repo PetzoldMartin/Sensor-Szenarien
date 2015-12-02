@@ -1,0 +1,131 @@
+{
+    "singleton": false,
+    "dependencies": [],
+    "category": "",
+    "author": "M.Petzold (Aismael)",
+    "homepage": "",
+    "icon": "icon.png",
+    "moduleName": "PersonIdentificationModule",
+    "version": "1.0.0",
+    "maturity": "stable",
+    "defaults": {
+        "title": "__m_title__",
+        "description": "__m_descr__"
+    },
+    "schema": {
+        "type": "object",
+        "properties": {
+            "CO2Sensor": {
+                "field": "enum",
+                "datasource": "namespaces",
+                "enum": "namespaces:devices_sensorMultilevel:deviceId"
+            },
+            "DoorWindowContacts": {
+                "type": "array",
+                "items": {
+                    "field": "enum",
+                    "datasource": "namespaces",
+                    "enum": "namespaces:devices_sensorBinary:deviceId",
+                    "required": false
+                }
+            },
+            "PeopleSizeMeasurement": {
+                "type": "array",
+                "items": {
+                    "field": "enum",
+                    "datasource": "namespaces",
+                    "enum": "namespaces:devices_sensorBinary:deviceId",
+                    "required": false
+                }
+            },
+            "RoomHigh": {
+                "type": "integer",
+                "required": true
+            },
+            "RoomWidth": {
+                "type": "integer",
+                "required": true
+            },
+            "RoomLength": {
+                "type": "integer",
+                "required": true
+            },
+            "room": {
+                "type": "integer",
+                "required": true
+            },
+            "PersonCounter": {
+                "field": "enum",
+                "datasource": "namespaces",
+                "enum": "namespaces:devices_sensorMultilevel:deviceId",
+                "required": true
+
+            }
+
+        },
+        "required": false
+    },
+    "options": {
+        "fields": {
+            "CO2Sensor": {
+                "label": "__l_CO2_Sensor__",
+                "type": "select",
+                "datasource": "namespaces",
+                "field": "optionLabels",
+                "optionLabels": "namespaces:devices_sensorMultilevel:deviceName",
+                "helper": "__l_CO2_Sensor_help__"
+            },
+            "DoorWindowContacts": {
+                "label": "__l_DoorWindowContacts__",
+                "fields": {
+                    "item": {
+                        "type": "select",
+                        "datasource": "namespaces",
+                        "field": "optionLabels",
+                        "optionLabels": "namespaces:devices_sensorBinary:deviceName"
+                    }
+                }
+            },
+            "PeopleSizeMeasurement": {
+                "label": "__l_SizeMeasurement__",
+                "fields": {
+                    "item": {
+                        "type": "select",
+                        "datasource": "namespaces",
+                        "field": "optionLabels",
+                        "optionLabels": "namespaces:devices_sensorBinary:deviceName"
+                    }
+                }
+            },
+            "RoomHigh": {
+                "label": "__l_RoomHigh__",
+                "type": "integer",
+                "placeholder": "__l_RoomHigh_placeholder__"
+            },
+            "RoomWidth": {
+                "label": "__l_RoomWidth__",
+                "type": "integer",
+                "placeholder": "__l_RoomWidth_placeholder__"
+            },
+            "RoomLength": {
+                "label": "__l_RoomLength__",
+                "type": "integer",
+                "placeholder": "__l_RoomLength_placeholder__"
+            },
+            "room": {
+                "label": "__l_room_id__",
+                "type": "integer",
+                "helper": "__l_room_help__"
+            },
+            "PersonenCounter": {
+                "label": "__l_PersonenCounter__",
+                "type": "select",
+                "datasource": "namespaces",
+                "field": "optionLabels",
+                "optionLabels": "namespaces:devices_sensorMultilevel:deviceName",
+                "helper": "__l_PersonenCounter_help__"
+            }
+        }
+    }
+
+}

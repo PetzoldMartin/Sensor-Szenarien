@@ -1,0 +1,10 @@
+{
+    "m_title": "PersonIdentificationModule",
+    "m_descr": "Some Delta of a Sensor Value made for CO2 Sensor.",
+    "l_CO2_Sensor":"The CO2 Sensor of the Room",
+    "l_CO2_Sensor_help":"Please Choose Your CO2 Sensor"
+   
+
+
+
+}
