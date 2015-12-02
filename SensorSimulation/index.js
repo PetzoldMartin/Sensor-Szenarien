@@ -126,6 +126,8 @@ SensorSimulation.prototype.init = function (config) {
 };
 
 SensorSimulation.prototype.stop = function () {
+    var self = this;
+
     if(self.timer) {
         clearInterval(self.timer);
     }

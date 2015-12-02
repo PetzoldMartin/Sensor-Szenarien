@@ -5,7 +5,7 @@
 	"author": "Z-Wave.Me",
 	"homepage": "http://razberry.z-wave.me",
 	"icon": "icon.png",
-        "moduleName": "RoomAccessControlDevice",
+        "moduleName": "RoomAccessModule",
 	"version": "1.0.0",
 	"maturity": "stable",
 	"repository": {
@@ -20,7 +20,11 @@
 	"schema" : {
 		"type" : "object",
 		"properties" : {
-			"room": {
+			"roomOne": {
+				"type": "integer",
+				"required": true
+			},
+			"roomTwo": {
 				"type": "integer",
 				"required": true
 			},
@@ -39,13 +43,13 @@
 							"type": "object",
 							"dependencies": "roomAccessControlType",
 							"properties": {
-								"motionSensorIn": {
+								"motionSensorOne": {
 									"field": "enum",
 									"datasource": "namespaces",
 									"enum": "namespaces:devices_sensorBinary:deviceId",
 									"required": true
 								},
-								"motionSensorOut": {
+								"motionSensorTwo": {
 									"field": "enum",
 									"datasource": "namespaces",
 									"enum": "namespaces:devices_sensorBinary:deviceId",
@@ -60,8 +64,13 @@
 	},
 	"options": {
 		"fields": {
-			"room": {
-				"label": "__l_room_id__",
+			"roomOne": {
+				"label": "__l_room_id_one__",
+				"type": "integer",
+				"helper": "__l_room_help__"
+			},
+			"roomTwo": {
+				"label": "__l_room_id_two__",
 				"type": "integer",
 				"helper": "__l_room_help__"
 			},
@@ -81,15 +90,15 @@
 									"roomAccessControlType": "Motion"
 								},
 								"fields": {
-									"motionSensorIn": {
-										"label": "__l_motion_sensor_in__",
+									"motionSensorOne": {
+										"label": "__l_motion_sensor_one__",
 										"type": "select",
 										"datasource": "namespaces",
 										"field": "optionLabels",
 										"optionLabels": "namespaces:devices_sensorBinary:deviceName"
 									},
-									"motionSensorOut": {
-										"label": "__l_motion_sensor_out__",
+									"motionSensorTwo": {
+										"label": "__l_motion_sensor_two__",
 										"type": "select",
 										"datasource": "namespaces",
 										"field": "optionLabels",

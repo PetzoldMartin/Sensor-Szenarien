@@ -1,11 +1,12 @@
 {
 	"m_title":"Room Access Control Device",
 	"m_descr":"This module acts as HTTP interface for Person Counter Devices.",
-	"l_room_id":"Enter a room id",
+	"l_room_id_one":"Enter a room id",
+	"l_room_id_two":"Enter a room id",
 	"l_room_help":"You can find the room id in the Settings <span class='glyphicon glyphicon-arrow-right'></span> Rooms <span class='glyphicon glyphicon-arrow-right'></span> Edit the specific room <span class='glyphicon glyphicon-arrow-right'></span> last character in the URL",
 	"l_room_access_controls":"Room access controls",
 	"l_room_access_control_help":"Choose a type of room access control",
 	"l_room_access_control_motion_sensor": "Motion sensors",
-	"l_motion_sensor_in":"Motion sensor inside the room",
-	"l_motion_sensor_out":"Motion sensor outside the room"
+	"l_motion_sensor_one":"Motion sensor in the room with room id one",
+	"l_motion_sensor_two":"Motion sensor in the room with room id two"
 }
