@@ -1,5 +1,5 @@
 {
-	"m_title":"Abschalt Timer Modul",
+	"m_title":"Abschalt Timer Module",
 	"m_descr":"Diese App kann einen Timer mit einer individuell festgelegten Ablaufzeit starten. Nach Ablauf des Timers wird eine definierte Szene ausgelöst. Zur Ausführung bedarf die App mindestens zweier Werte: Die Ablaufzeit des Timers und die auszulösende Szene.<br><br>Einstellungen:<br><ul><li>Wählen Sie die Szene, die durch den Ablauf des Timers ausgelöst werden soll.</li><li>Definieren Sie die Ablaufzeit des Timers in Sekunden.</i></ul>",
 	"r_l_options":"Starte den Timer neu, wenn ein entsprechner Befehl gegeben wird.",
 	"l_triggeredScene":"Szene/Aktion, die durch den Timerablauf ausgelöst wird.",

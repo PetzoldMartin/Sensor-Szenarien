@@ -24,7 +24,7 @@
 				"items": {
 					"field": "enum",
 					"datasource": "namespaces",
-					"enum": "namespaces:devices_switchMultilevel:deviceId, namespaces:devices_switchBinary:deviceId",
+					"enum": "namespaces:devices_switchBinary:deviceId,namespaces:devices_switchMultilevel:deviceId",
 					"required": true
 				}
 			}
@@ -44,7 +44,7 @@
 						"type": "select",
 						"datasource": "namespaces",
 						"field": "optionLabels",
-						"optionLabels": "namespaces:devices_switchMultilevel:deviceName, namespaces:devices_switchBinary:deviceName"
+						"optionLabels": "namespaces:devices_switchBinary:deviceName,namespaces:devices_switchMultilevel:deviceName"
 					}
 				}
 			}

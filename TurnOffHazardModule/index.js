@@ -56,7 +56,11 @@ TurnOffHazardModule.prototype.init = function (config) {
 
                 // start turn off timer
                 var turnOffTimerModule = self.controller.devices.get(vDev.get('metrics:turnOffTimerModuleId'));
-                turnOffTimerModule.performCommand('start_timer', {'time': turnOffTimerDuration});
+                if(turnOffTimerModule)
+                    turnOffTimerModule.performCommand('start_timer', {'time': turnOffTimerDuration});
+                else {
+                    self.controller.addNotification("warning", "TurnOffTimerModule need a restart of ZWay Server.", "module", "TurnOffTimerModule");
+                }
 
                 // if turn off timer expired
                 self.controller.devices.on(vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.room + "_expired", function() {
@@ -102,6 +106,12 @@ TurnOffHazardModule.prototype.init = function (config) {
         if (vDev.get('metrics:turnOffTimerModuleId') == -1) {
             var turnOffTimerModuleId = self.createTurnOffTimerModuleIfNotExist(self.config.room);
             vDev.set('metrics:turnOffTimerModuleId', turnOffTimerModuleId);
+        } else {
+            var turnOffTimerModule = self.controller.devices.get(vDev.get('metrics:turnOffTimerModuleId'));
+            if(!turnOffTimerModule) {
+                vDev.set('metrics:turnOffTimerModuleId', -1);
+                self.controller.addNotification("warning", "TurnOffTimerModule need a restart of ZWay Server.", "module", "TurnOffTimerModule");
+            }
         }
     });
 };
@@ -169,7 +179,9 @@ TurnOffHazardModule.prototype.createTurnOffTimerModuleIfNotExist = function (roo
 
     // rename virtual device
     var turnOffTimerModule = self.controller.devices.get("TurnOffTimerModule_" + deviceId);
-    turnOffTimerModule.set({'metrics': {'title': 'Turn Off Timer Module (Room ' + roomId + ')'}});
+    var oldMetrics = turnOffTimerModule.get('metrics');
+    oldMetrics.title = 'Turn Off Timer Module (Room ' + roomId + ')';
+    turnOffTimerModule.set(oldMetrics);
 
 	return "TurnOffTimerModule_" + deviceId; // device id
 }
