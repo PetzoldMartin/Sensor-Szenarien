@@ -27,7 +27,7 @@ TurnOffTimerModule.prototype.init = function (config) {
     TurnOffTimerModule.super_.prototype.init.call(this, config);
 
     var self = this;
-	
+
     // *********************************
     // *** Virtual Device Definition ***
     // *********************************
@@ -51,36 +51,38 @@ TurnOffTimerModule.prototype.init = function (config) {
         },
 		handler: function (command, args) {
 			var room 				 = vDev.get("metrics:roomId");
-			var feedbackModuleVDevId = "InHomeFeedbackModule_" + self.findFeedbackModule(room);	
+			var feedbackModuleVDevId = "InHomeFeedbackModule_" + self.findFeedbackModule(room);
 			var feedbackModuleVDev   =  self.controller.devices.get(feedbackModuleVDevId);
-							
+
 			var eventName = "InHomeFeedbackModule_" + room + "_canceled_by_user";
-			
-			self.controller.devices.on(feedbackModuleVDev, eventName, function() {
+
+            // self.controller.devices.on(feedbackModuleVDev, eventName, function() {
+            // function on(p1, p2, p3) need the device id as the first parameter and not the vdev object!
+			self.controller.devices.on(feedbackModuleVDevId, eventName, function() {
 				//kommende Zeile Code nur testhalber
 				self.controller.addNotification("info", "Test, ob der Code erreicht wird", "module", "TurnOffTimerModule");
 				vDev.set("metrics:cancel", "1");
             });
-			
+
             if(command === "start_timer") {
                 if(args.time) {
 					var counter = 0;
 					vDev.set("metrics:cancel", "0");
 					feedbackModuleVDev.performCommand("start", {endless: true});
-					
+
 					var i = setInterval(function(){
 						var currentCount = args.time - (counter + 1);
 						var text = "Current timer time = " + currentCount + " seconds";
 						vDev.set("metrics:level", text);
 						counter++;
-						
+
 						if(counter == (args.time - 1)) {
 							clearInterval(i);
 							currentCount = 0;
 							vDev.set("metrics:level", "Timer has expired");
 							feedbackModuleVDev.performCommand("stop");
 							self.controller.addNotification("info", "Turn Off Timer Module has expired for room " + room, "module", "TurnOffTimerModule");
-							self.controller.devices.emit(self.vDev.deviceId + ':TurnOffTimerModule_' + room + '_expired');
+							self.controller.devices.emit(vDev.deviceId + ':TurnOffTimerModule_' + room + '_expired');
 						}
 						else if(vDev.get("metrics:cancel") == 1) {
 							clearInterval(i);
@@ -88,7 +90,7 @@ TurnOffTimerModule.prototype.init = function (config) {
 							vDev.set("metrics:level", "Timer has canceled");
 							feedbackModuleVDev.performCommand("stop");
 							self.controller.addNotification("info", "Turn Off Timer Module has canceled for room " + room, "module", "TurnOffTimerModule");
-							self.controller.devices.emit(self.vDev.deviceId + ':TurnOffTimerModule_' + room + '_canceled');
+							self.controller.devices.emit(vDev.deviceId + ':TurnOffTimerModule_' + room + '_canceled');
 						}
 					}, 1000);
 				}
@@ -99,12 +101,22 @@ TurnOffTimerModule.prototype.init = function (config) {
 		},
         moduleId: this.id
     });
+    // save vDev object
+    self.vDev = vDev;
+
 	vDev.set("metrics:level", "Timer is ready");
-	
+
     vDev.set("metrics:roomId", this.config.room);
 };
 
-TurnOffTimerModule.prototype.stop = function () {    
+TurnOffTimerModule.prototype.stop = function () {
+    // event unsubscription
+    var room 				 = self.vDev.get("metrics:roomId");
+    var feedbackModuleVDevId = "InHomeFeedbackModule_" + self.findFeedbackModule(room);
+    var eventName = "InHomeFeedbackModule_" + room + "_canceled_by_user";
+
+    self.controller.devices.off(feedbackModuleVDevId, eventName, function() {});
+
     this.controller.devices.remove("TurnOffTimerModule_" + this.id);
 
     TurnOffTimerModule.super_.prototype.stop.call(this);
@@ -119,13 +131,13 @@ TurnOffTimerModule.prototype.findFeedbackModule = function (roomId) {
     var deviceId = null;
 
     self.controller.instances.forEach(function(instance) {
-			
+
         if(instance.moduleId == 'InHomeFeedbackModule') {
             if(instance.params.room == roomId) {
                 deviceId = instance.id;
             }
         }
     });
-	
+
     return deviceId;
 };
