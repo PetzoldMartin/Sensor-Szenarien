@@ -145,7 +145,7 @@ TurnOffHazardModule.prototype.createTurnOffTimerModuleIfNotExist = function (roo
     var deviceId = null;
 
     self.controller.instances.forEach(function(instance) {
-        if(instance.moduleId === 'TurnOffTimerModul') {
+        if(instance.moduleId === 'TurnOffTimerModule') {
             if(instance.params.room == roomId) {
                 existTurnOffTimerModuleInRoom = true;
                 deviceId = instance.id;
@@ -157,9 +157,9 @@ TurnOffHazardModule.prototype.createTurnOffTimerModuleIfNotExist = function (roo
         // create a new module (instance)
         var result = self.controller.createInstance({
             "instanceId": "0",
-            "moduleId": "TurnOffTimerModul",
+            "moduleId": "TurnOffTimerModule",
             "active": "true",
-            "title": "Turn Off Timer Modul",
+            "title": "Turn Off Timer Module",
             "params": {
                 "room": roomId,
             }
@@ -168,8 +168,8 @@ TurnOffHazardModule.prototype.createTurnOffTimerModuleIfNotExist = function (roo
     }
 
     // rename virtual device
-    var turnOffTimerModule = self.controller.devices.get("TurnOffTimerModul_" + deviceId);
-    turnOffTimerModule.set({'metrics': {'title': 'Turn Off Timer Modul (Raum ' + roomId + ')'}});
+    var turnOffTimerModule = self.controller.devices.get("TurnOffTimerModule_" + deviceId);
+    turnOffTimerModule.set({'metrics': {'title': 'Turn Off Timer Module (Room ' + roomId + ')'}});
 
-	return "TurnOffTimerModul_" + deviceId; // device id
+	return "TurnOffTimerModule_" + deviceId; // device id
 }
