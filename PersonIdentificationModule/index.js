@@ -126,9 +126,11 @@ PersonIdentificationModule.prototype.init = function (config) {
 
 PersonIdentificationModule.prototype.stop = function () {
     // here you should remove all registred listeners
-    PersonIdentificationModule.super_.prototype.stop.call(this);
-    this.controller.devices.remove("PersonIdentificationModule_" + this.id);
     this.controller.devices.remove(this.config.CO2Sensor, "change:metrics:level", function () {});
+
+    this.controller.devices.remove("PersonIdentificationModule_" + this.id);
+    PersonIdentificationModule.super_.prototype.stop.call(this);
+
 };
 // here you can add your own functions ...
 PersonIdentificationModule.prototype.makeMeasurePoint = function (CO2Device, measureData) {
