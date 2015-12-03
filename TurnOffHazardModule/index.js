@@ -113,6 +113,24 @@ TurnOffHazardModule.prototype.init = function (config) {
                 self.controller.addNotification("warning", "TurnOffTimerModule need a restart of ZWay Server.", "module", "TurnOffTimerModule");
             }
         }
+
+        // Subscribe PersonCounterModule events (PersonCounterModule of this room)
+        self.personCounterDeviceId = self.getPersonCounterDeviceId(self.config.room);
+        if (self.personCounterDeviceId) {
+            self.controller.devices.on(self.personCounterDeviceId, "change:metrics:level", function() {
+                var personCounterVDev = self.controller.devices.get(self.personCounterDeviceId);
+
+                if (personCounterVDev) {
+                    var personCount = personCounterVDev.get("metrics:level");
+
+                    if(personCount < 1) {
+                        self.vDev.performCommand("hazardOff");
+                    }
+                }
+            });
+        } else {
+            // TODO
+        }
     });
 };
 
@@ -121,6 +139,9 @@ TurnOffHazardModule.prototype.stop = function () {
 
     self.controller.devices.off(self.vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.room + "_expired", function() {});
     self.controller.devices.off(self.vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.room + "_canceled", function() {});
+    if(self.personCounterDeviceId) { // TODO
+        self.controller.devices.off(self.personCounterDeviceId, "change:metrics:level", function() {});
+    }
 
     if (self.unsubscribeEvents) {
         clearTimeout(self.unsubscribeEvents);
@@ -147,6 +168,25 @@ TurnOffHazardModule.prototype.turnOffAllHazards = function () {
             }
         }
     });
+}
+
+TurnOffHazardModule.prototype.getPersonCounterDeviceId = function (roomId) {
+    var self = this;
+    var deviceId = null;
+
+    self.controller.instances.forEach(function(instance) {
+        if(instance.moduleId === 'PersonCounterModule') {
+            if(instance.params.room == roomId) {
+                deviceId = instance.id;
+            }
+        }
+    });
+
+    if (deviceId) {
+        return "PersonCounterModule_" + deviceId; // device id
+    } else {
+        return null;
+    }
 }
 
 TurnOffHazardModule.prototype.createTurnOffTimerModuleIfNotExist = function (roomId) {
