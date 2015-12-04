@@ -46,7 +46,7 @@
                     "items": {
                         "title": "Device",
                         "type": "radio",
-                        "enum": ["Dad", "Mum","Child"],
+                        "enum": ["Man", "Woman","Child"],
                         "default": "Child",
                         "required": true
                     }

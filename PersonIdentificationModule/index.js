@@ -21,6 +21,12 @@ PersonIdentificationModule.prototype.init = function (config) {
         counter: 0,
         startTime: 0
     };
+    this.persona={
+        kind:"",
+        minVLM:"",
+        maxVLM:""
+    };
+    this.personas=new Array();
 
     this.measuredata.getLastmeasurement = function () {
         if (this.yList.length === 0) {
@@ -93,6 +99,10 @@ PersonIdentificationModule.prototype.init = function (config) {
                 moduleId: this.id
             });
     self.vDev = vDev;
+    self.config.personas.forEach(function(each) {
+        self.personas.push(self.makePersonaByKind(each));
+    });
+   
 
     var cO2SensorId = self.config.cO2Sensor;
     if (cO2SensorId) {
@@ -179,3 +189,23 @@ PersonIdentificationModule.prototype.getppmChangePerAdult = function (roomVolume
     return ppm;
 };
 
+PersonIdentificationModule.prototype.makePersona=function(name, minVLM,maxVLM){
+  return persona={
+        kind:name,
+        minVLM:minVLM,
+        maxVLM:maxVLM
+  }; 
+  
+};
+
+PersonIdentificationModule.prototype.makePersonaByKind=function(kind){
+    switch (kind){
+    case "Man":
+    return this.makePersona(kind,10,12);
+    case "Woman":
+    return this.makePersona(kind,7,9);
+    case "Child":
+    return this.makePersona(kind,4,6);
+    }
+    
+} ;
