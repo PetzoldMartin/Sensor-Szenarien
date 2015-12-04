@@ -11,10 +11,9 @@ PersonIdentificationModule.prototype.init = function (config) {
     this.deltaValueLastIntervall = 0;
     this.personCount = 0;
     this.adultCount = 0;
-
     this.ppmValue = 40000;
-    this.volumeLMBorder = 7.5;
     this.waitingMinutes = 0.25;
+    this.roomVolume;
     this.measuredata = {
         xList: new Array(),
         yList: new Array(),
@@ -23,8 +22,8 @@ PersonIdentificationModule.prototype.init = function (config) {
     };
     this.persona={
         kind:"",
-        minVLM:"",
-        maxVLM:""
+        minPpm:"",
+        maxPpm:""
     };
     this.personas=new Array();
 
@@ -100,7 +99,7 @@ PersonIdentificationModule.prototype.init = function (config) {
             });
     self.vDev = vDev;
     self.config.personas.forEach(function(each) {
-        self.personas.push(self.makePersonaByKind(each));
+        self.personas.push(self.makePersonaByKind(each,self.ppmValue));
     });
    
 
@@ -125,6 +124,7 @@ PersonIdentificationModule.prototype.init = function (config) {
                         counter: 0,
                         startTime: 0
                     };
+                    self.adultFound=self.identify(delta,self.personas,self.personCount,self.roomVolume);
                     self.controller.addNotification("info", "PersonIdentificationModule" + self.id + ": the configured cO2Sensor switch changed its level.delta:" + delta + " a:" + self.line.a + " b: " + self.line.b, "module", "PersonIdentificationModule");
                 } else {
                     self.makeMeasurePoint(cO2Device, self.measuredata);
@@ -189,23 +189,33 @@ PersonIdentificationModule.prototype.getppmChangePerAdult = function (roomVolume
     return ppm;
 };
 
-PersonIdentificationModule.prototype.makePersona=function(name, minVLM,maxVLM){
+PersonIdentificationModule.prototype.makePersona=function(name, minVLM,maxVLM,ppmValue){
   return persona={
         kind:name,
-        minVLM:minVLM,
-        maxVLM:maxVLM
+        minPpm:minVLM*ppmValue,
+        maxPpm:maxVLM*ppmValue
   }; 
   
 };
 
-PersonIdentificationModule.prototype.makePersonaByKind=function(kind){
+PersonIdentificationModule.prototype.makePersonaByKind=function(kind,ppmValue){
     switch (kind){
     case "Man":
-    return this.makePersona(kind,10,12);
+    return this.makePersona(kind,10,12,ppmValue);
     case "Woman":
-    return this.makePersona(kind,7,9);
+    return this.makePersona(kind,7,9,ppmValue);
     case "Child":
-    return this.makePersona(kind,4,6);
+    return this.makePersona(kind,4,6,ppmValue);
     }
     
 } ;
+PersonIdentificationModule.prototype.identify=function(delta,personas,personCount,roomVolume){
+    var minDelta;
+    minDelta=(personCount*this.makePersonaByKind("Child")).maxPpm/roomVolume;
+    if (delta<minDelta){
+        return false;
+    }else{
+        return true;
+    }
+};
+
