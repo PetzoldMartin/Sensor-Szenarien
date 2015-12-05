@@ -67,6 +67,10 @@
             "room": {
                 "type": "integer",
                 "required": true
+            }, 
+            "correctionFactor": {
+                "type": "integer",
+                "required": true
             },
             "personCounter": {
                 "field": "enum",
@@ -141,6 +145,13 @@
                 "label": "__l_room_id__",
                 "type": "integer",
                 "helper": "__l_room_help__"
+            },
+            
+            "correctionFactor": {
+               "label": "__l_co_id__",
+                "type": "integer",
+                "helper": "__l_co_help__"
+            
             },
             "personenCounter": {
                 "label": "__l_PersonenCounter__",
