@@ -114,15 +114,16 @@ PersonIdentificationModule.prototype.init = function (config) {
     // var personCounterDevice = this.controller.devices.get(persoCounterId);S
     // self.personCount = personCounterDevice.get("metrics:level");
 
-    if (persoCounterId) {
-        self.controller.on("core.start", function () {
-            var persoCounterId = self.config.personCounter;
-            var personCounterDevice = this.controller.devices.get(persoCounterId);
-            self.personCount = 2;//personCounterDevice.get("metrics:level");
-            self.controller.addNotification("info", "PersonIdentificationModule cs: " + self.personCount, "module", "PersonIdentificationModule");
-        });
-    }
-    ;
+    //wieso geht der mist nicht hier sollte eigentlich der code stehen wenn er gehen würde
+    //if (persoCounterId) {
+    //    self.controller.on("core.start", function () {
+    //        var persoCounterId = self.config.personCounter;
+    //        var personCounterDevice = this.controller.devices.get(persoCounterId);
+    //        self.personCount = personCounterDevice.get("metrics:level");
+    //        self.controller.addNotification("info", "PersonIdentificationModule cs: " + self.personCount, "module", "PersonIdentificationModule");
+    //    });
+    //}
+    //;
 
 
 
@@ -146,6 +147,13 @@ PersonIdentificationModule.prototype.init = function (config) {
                         counter: 0,
                         startTime: 0
                     };
+                    //eigentlich sollte das immer beim init passieren aber es geht nicht der mist
+                    var persoCounterId = self.config.personCounter;
+                    var personCounterDevice = this.controller.devices.get(persoCounterId);
+                    self.personCount = personCounterDevice.get("metrics:level");
+                    self.controller.addNotification("info", "PersonIdentificationModule cs: " + self.personCount, "module", "PersonIdentificationModule");
+                    
+                    //
                     self.adultFound = self.identify(delta, self.personas, self.personCount, self.roomVolume, self.waitingMinutes);
                     self.controller.addNotification("info", "PersonIdentificationModule " + self.adultFound + " w " + delta, "module", "PersonIdentificationModule");
                 } else {
