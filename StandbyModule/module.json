@@ -2,7 +2,7 @@
 	"singleton" : false,
 	"dependencies": [],
 	"category": "",
-	"author": "Simon Schwabe",
+	"author": "Simon Schwabe", "Zarina Omurova"
 	"homepage": "",
 	"icon": "icon.png",
         "moduleName": "StandbyModule",
@@ -15,6 +15,11 @@
 	"schema" : {
 	    "type" : "object",
 	    "properties" : {
+			"standby": {
+	            "field": "enum",
+	            "datasource": "namespaces",
+	            "enum": "namespaces:devices_switchControl:deviceId"
+	        },
 			"switches": {
 				"type": "array",
 				"items": {
@@ -23,7 +28,7 @@
 						"device": {
 							"field": "enum",
 							"datasource": "namespaces",
-							"enum": "namespaces:devices_switchBinary:deviceId",
+							"enum": "namespaces:devices_switchBinary:deviceId,namespaces:devices_switchMultilevel:deviceId",
 							"required": true
 						},
 						"status": {
@@ -42,7 +47,7 @@
 						"device": {
 							"field": "enum",
 							"datasource": "namespaces",
-							"enum": "namespaces:devices_switchMultilevel:deviceId",
+							"enum": "namespaces:devices_switchMultilevel:deviceId,namespaces:devices_switchMultilevel:deviceId",
 							"required": true
 						},
 						"status": {
@@ -59,6 +64,14 @@
 	},
 	"options": {
 	    "fields": {
+			"standby": {
+	            "label": "__standby__",
+	            "type": "select",
+	            "datasource": "namespaces",
+	            "field": "optionLabels",
+	            "optionLabels": "namespaces:devices_switchControl:deviceName",
+	            "helper": "__standby_help__"
+	        },
 			"switches": {
 				"label": "__l_switches__",
 				"fields": {
@@ -69,7 +82,7 @@
 								"type": "select",
 								"datasource": "namespaces",
 								"field": "optionLabels",
-								"optionLabels": "namespaces:devices_switchBinary:deviceName"
+								"optionLabels": "namespaces:devices_switchBinary:deviceName,namespaces:devices_switchMultilevel:deviceId"
 							},
 							"status": {
 								"label": "",
@@ -89,7 +102,7 @@
 								"type": "select",
 								"datasource": "namespaces",
 								"field": "optionLabels",
-								"optionLabels": "namespaces:devices_switchMultilevel:deviceName"
+								"optionLabels": "namespaces:devices_switchMultilevel:deviceName,namespaces:devices_switchMultilevel:deviceId"
 							},
 							"status": {
 								"label": "__l_level__"
