@@ -13,19 +13,20 @@ PersonIdentificationModule.prototype.init = function (config) {
     this.adultCount = 0;
     this.ppmValue = 40000;
     this.waitingMinutes = 0.25;
-    this.roomVolume;
+    this.roomVolume = 100000;
+    this.correctionFaktor = 1;
     this.measuredata = {
         xList: new Array(),
         yList: new Array(),
         counter: 0,
         startTime: 0
     };
-    this.persona={
-        kind:"",
-        minPpm:"",
-        maxPpm:""
+    this.persona = {
+        kind: "",
+        minPpm: "",
+        maxPpm: ""
     };
-    this.personas=new Array();
+    this.personas = new Array();
 
     this.measuredata.getLastmeasurement = function () {
         if (this.yList.length === 0) {
@@ -46,8 +47,11 @@ PersonIdentificationModule.prototype.init = function (config) {
                 defaults: {
                     metrics: {
                         title: "CO2 Sensor Test Modul" + this.id,
-                        level: "1",
-                        personCount: "",
+                        level: "0",
+                        room: -1,
+                        correctionFactor: 1,
+                        status: false,
+                        personCount: "1",
                         alarmSwitchDeviceId: -1
                     }
                 },
@@ -98,57 +102,73 @@ PersonIdentificationModule.prototype.init = function (config) {
                 moduleId: this.id
             });
     self.vDev = vDev;
-    self.config.personas.forEach(function(each) {
-        self.personas.push(self.makePersonaByKind(each,self.ppmValue));
+    //Variable initialize
+    if (vDev.get("metrics:room") === -1) {
+        vDev.set("metrics:room", self.config.room);
+    }
+    ;
+    if (vDev.get("metrics:correctionFactor") === 0) {
+        vDev.set("metrics:correctionFactor", self.config.correctionFactor);
+    }
+    ;
+    var room = vDev.get("metrics:room");
+    this.eventID = vDev.deviceId + ':PersonIdentificationModule_' + room;
+    self.config.personas.forEach(function (each) {
+        self.personas.push(self.makePersonaByKind(each, self.ppmValue));
     });
-   
+
+    self.roomVolume = self.config.roomHigh * self.config.roomWidth * self.config.roomLength * 1000;
+    self.correctionFaktor = vDev.get("metrics:correctionFactor");
+
 
     var cO2SensorId = self.config.cO2Sensor;
-    if (cO2SensorId) {
+    var persoCounterId = self.config.personCounter;
+
+    if (cO2SensorId & persoCounterId) {
         self.controller.devices.on(cO2SensorId, "change:metrics:level", function () {
             //some seeing of overdriven measurepoints
             var cO2Device = self.controller.devices.get(cO2SensorId);
-            //self.controller.addNotification("info", "PersonIdentificationModule" + self.id + ": nochanges:", "module", "PersonIdentificationModule");
-            //self.controller.devices.emit(vDev.deviceId + ':exampleEmitOfPersonIdentificationModule');
-            if (self.measuredata.xList.length === 0) {
+            if (self.measuredata.startTime === 0) {
                 self.measuredata.startTime = new Date().getTime();
                 self.makeMeasurePoint(cO2Device, self.measuredata);
             } else {
                 if (self.measuredata.startTime + self.waitingMinutes * 60000 < new Date().getTime()) {
                     self.makeMeasurePoint(cO2Device, self.measuredata);
                     self.line = self.getRegressionLineParameter(self.measuredata, self.line);
-                    var delta = (self.getRegressionLineValue(self.line, self.measuredata.xList[self.measuredata.xList.length - 1])) - (self.getRegressionLineValue(self.line, self.measuredata.xList[0]));
-                    self.measuredata = {
-                        xList: new Array(),
-                        yList: new Array(),
-                        counter: 0,
-                        startTime: 0
-                    };
-                    self.adultFound=self.identify(delta,self.personas,self.personCount,self.roomVolume);
-                    self.controller.addNotification("info", "PersonIdentificationModule" + self.id + ": the configured cO2Sensor switch changed its level.delta:" + delta + " a:" + self.line.a + " b: " + self.line.b, "module", "PersonIdentificationModule");
+                    var delta = ((self.getRegressionLineValue(self.line, self.measuredata.xList[self.measuredata.xList.length - 1])) - (self.getRegressionLineValue(self.line, self.measuredata.xList[0])))
+                            * self.correctionFaktor;
+                    //eigentlich sollte das immer beim init passieren aber es geht nicht der mist
+                    self.readPersonCounter(persoCounterId, self.measuredata);
+
+                    //
+                    self.makeStatement(self.identify(delta, self.personas, self.personCount, self.roomVolume, self.waitingMinutes), self);
+                    self.controller.addNotification("info", "PersonIdentificationModule " + self.adultFound + "new status" + delta, "module", "PersonIdentificationModule");
                 } else {
                     self.makeMeasurePoint(cO2Device, self.measuredata);
                 }
             }
         });
     }
-    
-   var persoCounterId= self.config.personCounter;
-   if(persoCounterId){
-        self.controller.devices.on(persoCounterId, "change:metrics:level", function () {
-       var personCounterDevice=self.controller.devices.get(persoCounterId);
-       self.personCount=personCounterDevice.get("metrics:level");
-       //self.controller.addNotification("info", "PersonIdentificationModule has see people "+self.personCount , "module", "PersonIdentificationModule");
 
-   });
-   }
+    if (persoCounterId) {
+        self.controller.devices.on(persoCounterId, "change:metrics:level", function () {
+            self.readPersonCounter(persoCounterId, self.measuredata);
+            self.makeStatement(false, self);
+        });
+    }
+
+
+
+    self.controller.addNotification("info", "PersonIdentificationModule pc: " + self.personCount, "module", "PersonIdentificationModule");
+
 };
 
 
 PersonIdentificationModule.prototype.stop = function () {
     // here you should remove all registred listeners
+    this.controller.devices.remove("core.start", function () {});
     this.controller.devices.remove(this.config.cO2Sensor, "change:metrics:level", function () {});
-    this.controller.devices.on(this.config.personCounter, "change:metrics:level", function () {});
+    this.controller.devices.remove(this.config.personCounter, "change:metrics:level", function () {});
     this.controller.devices.remove("PersonIdentificationModule_" + this.id);
     PersonIdentificationModule.super_.prototype.stop.call(this);
 
@@ -189,33 +209,103 @@ PersonIdentificationModule.prototype.getppmChangePerAdult = function (roomVolume
     return ppm;
 };
 
-PersonIdentificationModule.prototype.makePersona=function(name, minVLM,maxVLM,ppmValue){
-  return persona={
-        kind:name,
-        minPpm:minVLM*ppmValue,
-        maxPpm:maxVLM*ppmValue
-  }; 
-  
+PersonIdentificationModule.prototype.makePersona = function (name, minVLM, maxVLM, ppmValue) {
+    return persona = {
+        kind: name,
+        minPpm: minVLM * ppmValue,
+        maxPpm: maxVLM * ppmValue
+    };
+
 };
 
-PersonIdentificationModule.prototype.makePersonaByKind=function(kind,ppmValue){
-    switch (kind){
-    case "Man":
-    return this.makePersona(kind,10,12,ppmValue);
-    case "Woman":
-    return this.makePersona(kind,7,9,ppmValue);
-    case "Child":
-    return this.makePersona(kind,4,6,ppmValue);
+PersonIdentificationModule.prototype.makePersonaByKind = function (kind, ppmValue) {
+    switch (kind) {
+        case "Man":
+            return this.makePersona(kind, 10, 12, ppmValue);
+        case "Woman":
+            return this.makePersona(kind, 7, 9, ppmValue);
+        case "Child":
+            return this.makePersona(kind, 4, 6, ppmValue);
     }
-    
-} ;
-PersonIdentificationModule.prototype.identify=function(delta,personas,personCount,roomVolume){
-    var minDelta;
-    minDelta=(personCount*this.makePersonaByKind("Child")).maxPpm/roomVolume;
-    if (delta<minDelta){
+
+};
+PersonIdentificationModule.prototype.identify = function (delta, personas, personCount, roomVolume, waitingMinutes) {
+    //for this Modul undefined person Count Values
+    if (personCount === 0 || personCount > personas.length) {
         return false;
-    }else{
+    }
+
+    var minDelta = 0;
+    var childsMaxPpm = new Array();
+    personas.forEach(function (each) {
+        if (each.kind === "Child") {
+            childsMaxPpm.push(each.maxPpm);
+        }
+    });
+    for (var count = 0; count < personCount; count++) {
+        if (childsMaxPpm.length > 0) {
+            minDelta += this.getPpmByRoomAndTime(this.popMaxOfAnIntegerArray(childsMaxPpm), roomVolume, waitingMinutes);
+        }
+    }
+    ;
+    this.controller.addNotification("info", "identify" + delta + " u " + minDelta, "module", "PersonIdentificationModule");
+
+    if (delta < minDelta) {
+        return false;
+    } else {
         return true;
     }
 };
 
+PersonIdentificationModule.prototype.getPpmByRoomAndTime = function (ppmOfPerson, roomVolume, waitingMinutes) {
+    return   (ppmOfPerson / roomVolume) * waitingMinutes;
+};
+
+PersonIdentificationModule.prototype.popMaxOfAnIntegerArray = function (array) {
+    var max = null;
+    var tCount = 0;
+    for (var count = 0; count < array.length; count++) {
+        if (max === null) {
+            max = array[count];
+            tCount = count;
+        } else {
+            if (max < array[count]) {
+                max = array[count];
+                tCount = count;
+            }
+        }
+    }
+    array.splice(tCount, 1);
+    return max;
+};
+
+PersonIdentificationModule.prototype.initMeasureData = function (measuredata) {
+    measuredata = {
+        xList: new Array(),
+        yList: new Array(),
+        counter: 0,
+        startTime: 0
+    };
+    return measuredata;
+};
+
+PersonIdentificationModule.prototype.readPersonCounter = function (persoCounterId, measureData) {
+    var personCounterDevice = this.controller.devices.get(persoCounterId);
+    this.personCount = personCounterDevice.get("metrics:level");
+    this.initMeasureData(measureData);
+};
+
+PersonIdentificationModule.prototype.makeStatement = function (bool, self) {
+    if (bool) {
+        self.adultFound = true;
+        self.vDev.set("metrics:level", 1);
+        self.vDev.set("metrics:status", true);
+        self.controller.devices.emit(self.eventID + '_adult_there');
+    } else {
+        self.adultFound = false;
+        self.vDev.set("metrics:level", 0);
+        self.vDev.set("metrics:status", false);
+        self.controller.devices.emit(self.eventID + '_no_adult_there');
+    }
+
+};
