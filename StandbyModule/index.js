@@ -61,7 +61,7 @@ StandbyModule.prototype.init = function (config) {
     });
 
     self.controller.devices.on('LockDoorModule_unlocked', function() {
-        vDev.set("metrics:level", "finished standby");
+        vDev.set("metrics:level", "not in standy");
     });
 };
 
