@@ -1,6 +1,6 @@
 /*** RoomAccessModule module ***
 
-Version: 1.1.0
+Version: 1.2.0
 -----------------------------------------------------------------------------
 Author: Philip Laube <phl111fg@fh-zwickau.de>, Patrick Hecker <pah111kg@fh-zwickau.de>, Simon Schwabe <sis111su@fh-zwickau.de>
 Description:
@@ -29,8 +29,8 @@ RoomAccessModule.prototype.init = function (config) {
 
     var self = this;
 
-    this.lastEventMotionSensorOne = null;
-    this.lastEventMotionSensorTwo = null;
+    var lastEventMotionSensorOne;
+    var lastEventMotionSensorTwo;
 
     // Virtuel Device Definition
     // This object defines the interface for the ZAutomation API and the UI (Elements)
@@ -58,14 +58,14 @@ RoomAccessModule.prototype.init = function (config) {
     // setup and connect a PersonCounterDevice for this room
     // save the id of PersonCounterDevice as instance variable, because
     // the access in the stop function is necessary
-    self.personCounterDeviceIdOne = self.createPersonCounterIfNecessary(self.config.roomOne);
+    var personCounterDeviceIdOne = self.createPersonCounterIfNecessary(self.config.roomOne);
     
         /*if(!personCounterDeviceOne) {
         self.controller.addNotification("error", "RoomAccessModule (" + self.id + "): PersonCounterDevice (" + personCounterDeviceIdOne + ") for room (" + self.config.room + ") not found", "module", "RoomAccessModule");
         stop();
         }*/
     
-    self.personCounterDeviceIdTwo = self.createPersonCounterIfNecessary(self.config.roomTwo);
+    var personCounterDeviceIdTwo = self.createPersonCounterIfNecessary(self.config.roomTwo);
     
         /*if(!personCounterDeviceTwo) {
         self.controller.addNotification("error", "RoomAccessModule (" + self.id + "): PersonCounterDevice (" + personCounterDeviceIdTwo + ") for room (" + self.config.room + ") not found", "module", "RoomAccessModule");
@@ -88,15 +88,7 @@ RoomAccessModule.prototype.init = function (config) {
                     self.lastEventMotionSensorOne = new Date().getTime();
                     //self.controller.addNotification("info", "RoomAccessModule (" + self.id + "): Motion Sensor One (" + motionSensorOne + ") for room (" + self.config.room + ") fired", "module", "RoomAccessModule");
                     if(new Date().getTime() - self.lastEventMotionSensorTwo < 5000) {
-    var personCounterDeviceOne = self.controller.devices.get("PersonCounterModule_" + self.personCounterDeviceIdOne);
-    var personCounterDeviceTwo = self.controller.devices.get("PersonCounterModule_" + self.personCounterDeviceIdTwo);
-                            var numberOfPersonsRoomOne = personCounterDeviceOne.get("metrics:level");
-                            numberOfPersonsRoomOne++;
-                            personCounterDeviceOne.set("metrics:level", numberOfPersonsRoomOne);
-                            var numberOfPersonsRoomTwo = personCounterDeviceTwo.get("metrics:level");
-                            numberOfPersonsRoomTwo--;
-                            personCounterDeviceTwo.set("metrics:level", numberOfPersonsRoomTwo);
-                        //self.controller.devices.emit(vDev.deviceId + ':RoomAccessModule' + vDev.get("metrics:roomIdTwo") +'_'+ vDev.get("metrics:roomIdOne") + '_transition_detected');
+                        self.setUpTransition(personCounterDeviceIdTwo, personCounterDeviceIdOne);
                     }
                 }
             });
@@ -109,18 +101,9 @@ RoomAccessModule.prototype.init = function (config) {
 
                 if(level == 'on') {
                     self.lastEventMotionSensorTwo = new Date().getTime();
-                    //self.controller.addNotification("info", "RoomAccessModule (" + self.id + "): Motion Sensor Two (" + motionSensorTwo + ") for room (" + self.config.room + ") fired", "module", "RoomAccessModule");
 
                     if(new Date().getTime() - self.lastEventMotionSensorOne < 5000) {
-    var personCounterDeviceOne = self.controller.devices.get("PersonCounterModule_" + self.personCounterDeviceIdOne);
-    var personCounterDeviceTwo = self.controller.devices.get("PersonCounterModule_" + self.personCounterDeviceIdTwo);
-                            var numberOfPersonsRoomOne = personCounterDeviceOne.get("metrics:level");
-                            numberOfPersonsRoomOne--;
-                            personCounterDeviceOne.set("metrics:level", numberOfPersonsRoomOne);
-                            var numberOfPersonsRoomTwo = personCounterDeviceTwo.get("metrics:level");
-                            numberOfPersonsRoomTwo++;
-                            personCounterDeviceTwo.set("metrics:level", numberOfPersonsRoomTwo);
-                        //self.controller.devices.emit(vDev.deviceId + ':RoomAccessModule' + vDev.get("metrics:roomIdOne") +'_'+ vDev.get("metrics:roomIdTwo") + '_transition_detected');
+                        self.setUpTransition(personCounterDeviceIdOne, personCounterDeviceIdTwo);
                     }
                 }
             });
@@ -130,10 +113,18 @@ RoomAccessModule.prototype.init = function (config) {
 
         }
     });
-
     // save the room id in metrics:roomId field of virtual device
     vDev.set("metrics:roomIdOne", this.config.roomOne);
     vDev.set("metrics:roomIdTwo", this.config.roomTwo);
+};
+
+RoomAccessModule.prototype.setUpTransition = function (personCounterDeviceIdOne, personCounterDeviceIdTwo) {
+    var self = this;
+    var personCounterDeviceOne = self.controller.devices.get("PersonCounterModule_" + personCounterDeviceIdOne);
+    var personCounterDeviceTwo = self.controller.devices.get("PersonCounterModule_" + personCounterDeviceIdTwo);
+
+    personCounterDeviceOne.performCommand("person_left");
+    personCounterDeviceTwo.performCommand("person_entered");
 };
 
 RoomAccessModule.prototype.stop = function () {
