@@ -3,7 +3,7 @@
  * Version: 1.1.0
  * 2015
  *
- * Author: Simon Schwabe <sis111su@fh-zwickau.de>
+ * Author: Simon Schwabe <sis111su@fh-zwickau.de>, Zarina Omurova<Zarina.Muratbekovna.Omurova.207@fh-zwickau.de>
  */
 
 // ----------------------------------------------------------------------------
@@ -56,12 +56,18 @@ StandbyModule.prototype.init = function (config) {
 
     self.controller.devices.on('LockDoorModule_locked', function() {
         // set configured devices in defined standby state
-
-        vDev.set("metrics:level", "put devices to standby");
+		vDev.set("metrics:level", "put devices to standby");
+		self.turnOffDevices();
+		self.controller.devices.emit("Standby_On");
+		self.controller.addNotification("info", "Standby on, devices turned off", "module", "StandbyModule");
+        
     });
 
     self.controller.devices.on('LockDoorModule_unlocked', function() {
-        vDev.set("metrics:level", "not in standy");
+		vDev.set("metrics:level", "finished standby");
+		self.turnOnDevices();
+		self.controller.devices.emit("Standby_Off");
+		self.controller.addNotification("info", "Standby off, devices turned on", "module", "StandbyModule");
     });
 };
 
@@ -73,3 +79,42 @@ StandbyModule.prototype.stop = function () {
 
     StandbyModule.super_.prototype.stop.call(this);
 };
+
+StandbyModule.prototype.turnOffDevices = function () {
+    var self = this;
+
+    self.config.switches.forEach(function(el) {
+        var vDev = self.controller.devices.get(el);
+
+        if (vDev) {
+            var deviceType = vDev.get("deviceType");
+
+            if (deviceType === "switchBinary") {
+                vDev.performCommand("off");
+				
+            } else if (deviceType === "switchMultilevel") {
+                vDev.performCommand("exact", { level: 0 });
+            }
+        }
+	
+    });
+}
+StandbyModule.prototype.turnOnDevices = function () {
+    var self = this;
+
+    self.config.switches.forEach(function(el) {
+        var vDev = self.controller.devices.get(el);
+
+        if (vDev) {
+            var deviceType = vDev.get("deviceType");
+
+            if (deviceType === "switchBinary") {
+                vDev.performCommand("on");
+				
+            } else if (deviceType === "switchMultilevel") {
+                vDev.performCommand("exact", { level: 99 });
+            }
+        }
+		
+    });
+}

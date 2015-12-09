@@ -3,6 +3,8 @@
 	"m_descr":"This module gets events from DoorLockModule and turns  configured devices in specified states.",
 	"on":"On",
 	"off":"Off",
+	"standby":"Standby",
+	"standby_help":"This specifies the flats standby status.",
 	"l_switches":"List of switches",
 	"l_dimmers":"List of dimmers",
 	"l_level":"Level"
