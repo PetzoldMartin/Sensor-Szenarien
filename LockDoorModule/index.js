@@ -71,7 +71,7 @@ LockDoorModule.prototype.init = function (config) {
             } else if (switchVDev.get("metrics:level") == "on") {
                 // standby mode should be started
                 vDev.set("metrics:level", "time to enter standby");
-				self.controller.devices.emit("LockDoorModule_locked");
+
                 self.peoplePresent = false;
 
                 // check all PersonCounter
