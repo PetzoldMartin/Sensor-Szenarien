@@ -18,7 +18,7 @@
 	        "doorLock": {
 	            "field": "enum",
 	            "datasource": "namespaces",
-	            "enum": "namespaces:devices_switchControl:deviceId"
+	            "enum": "namespaces:devices_buttonControl:deviceId"
 	        },
 			"switch": {
 	            "field": "enum",
@@ -35,7 +35,7 @@
 	            "type": "select",
 	            "datasource": "namespaces",
 	            "field": "optionLabels",
-	            "optionLabels": "namespaces:devices_switchControl:deviceName",
+	            "optionLabels": "namespaces:devices_buttonControl:deviceName",
 	            "helper": "__door_lock_help__"
 	        },
 			"switch": {

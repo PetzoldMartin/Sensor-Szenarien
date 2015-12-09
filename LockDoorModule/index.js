@@ -64,7 +64,7 @@ LockDoorModule.prototype.init = function (config) {
         self.controller.devices.on(switchVDevId, "change:metrics:level", function() {
             var switchVDev = self.controller.devices.get(switchVDevId);
             if (switchVDev.get("metrics:level") == "off") {
-                vDev.set("metrics:level", "standby finished")
+                vDev.set("metrics:level", "not in standby")
                 // standby mode should be finished
                 self.controller.devices.emit("LockDoorModule_unlocked");
 
@@ -124,33 +124,50 @@ LockDoorModule.prototype.checkPersonCountersAndStartTurnOffTimer = function (vDe
 LockDoorModule.prototype.manageTurnOffTimerForRoom = function (currentRoomId) {
     var self = this;
     var turnOffTimerModuleId = this.createTurnOffTimerModuleIfNotExist(currentRoomId);
-    var turnOffTimer =  self.controller.devices.get(turnOffTimerModuleId);
+    if (turnOffTimerModuleId) {
+        var turnOffTimer =  self.controller.devices.get(turnOffTimerModuleId);
 
-    turnOffTimer.performCommand('start_timer', {'time': 30});
-    this.roomWithTurnOffTimer.push(currentRoomId);
+        turnOffTimer.performCommand('start_timer', {'time': 15});
+        this.roomWithTurnOffTimer.push(currentRoomId);
 
-    this.controller.devices.on(turnOffTimerModuleId, 'TurnOffTimerModule_' + currentRoomId + "_expired", function() {
-        // no person in this one room
-        var index = self.roomWithTurnOffTimer.indexOf(currentRoomId);
-        if (index > -1) {
-            self.roomWithTurnOffTimer.splice(index, 1);
-            if (self.roomWithTurnOffTimer.length == 0) {
-                // all started are expired => no person at home
-                self.controller.devices.emit("LockDoorModule_locked");
+        this.controller.devices.on(turnOffTimerModuleId, 'TurnOffTimerModule_' + currentRoomId + "_expired", function() {
+            self.controller.devices.off(turnOffTimerModuleId, 'TurnOffTimerModule_' + currentRoomId + "_expired", function(){});
+            // no person in this one room
+            var index = self.roomWithTurnOffTimer.indexOf(currentRoomId);
+            if (index > -1) {
+                self.roomWithTurnOffTimer.splice(index, 1);
+                if (self.roomWithTurnOffTimer.length == 0) {
+                    // all started are expired => no person at home
+                    self.controller.devices.emit("LockDoorModule_locked");
+                }
             }
-        }
-    });
+        });
+    }
 
     // if turn off timer canceled
     this.controller.devices.on(turnOffTimerModuleId, 'TurnOffTimerModule_' + currentRoomId + "_canceled", function() {
+        self.controller.devices.off(turnOffTimerModuleId, 'TurnOffTimerModule_' + currentRoomId + "_canceled", function(){});
         // there are persons in the room, don't send an event
     });
 }
 
+// This creates a TurnOffTimer only if the room has a InHomeFeedbackModule associated.
+// Returns the Id of the existing or created TurnOffTimer. If the room has no
+// InHomeFeedbackModule, it returns nothing.
 LockDoorModule.prototype.createTurnOffTimerModuleIfNotExist = function (roomId) {
     var self = this;
     var existTurnOffTimerModuleInRoom = false;
     var deviceId = null;
+
+    var roomHasFeedbackModule = false;
+    self.controller.devices.forEach(function(vDev) {
+        if (vDev.id.indexOf('InHomeFeedbackModule') != -1 ) {
+            var room = vDev.get("metrics:roomId");
+            if (room == roomId) {
+                roomHasFeedbackModule = true;
+            }
+        }
+    });
 
     self.controller.instances.forEach(function(instance) {
         if(instance.moduleId === 'TurnOffTimerModule') {
@@ -161,25 +178,27 @@ LockDoorModule.prototype.createTurnOffTimerModuleIfNotExist = function (roomId) 
         }
     });
 
-    if(!existTurnOffTimerModuleInRoom) {
-        // create a new module (instance)
-        var result = self.controller.createInstance({
-            "instanceId": "0",
-            "moduleId": "TurnOffTimerModule",
-            "active": "true",
-            "title": "Turn Off Timer Module",
-            "params": {
-                "room": roomId,
-            }
-        });
-        deviceId = result.id;
+    if (roomHasFeedbackModule) {
+        if(!existTurnOffTimerModuleInRoom) {
+            // create a new module (instance)
+            var result = self.controller.createInstance({
+                "instanceId": "0",
+                "moduleId": "TurnOffTimerModule",
+                "active": "true",
+                "title": "Turn Off Timer Module",
+                "params": {
+                    "room": roomId,
+                }
+            });
+            deviceId = result.id;
+        }
+
+        // rename virtual device
+        var turnOffTimerModule = self.controller.devices.get("TurnOffTimerModule_" + deviceId);
+        var oldMetrics = turnOffTimerModule.get('metrics');
+        oldMetrics.title = 'Turn Off Timer Module (Room ' + roomId + ')';
+        turnOffTimerModule.set(oldMetrics);
+
+    	return "TurnOffTimerModule_" + deviceId; // device id
     }
-
-    // rename virtual device
-    var turnOffTimerModule = self.controller.devices.get("TurnOffTimerModule_" + deviceId);
-    var oldMetrics = turnOffTimerModule.get('metrics');
-    oldMetrics.title = 'Turn Off Timer Module (Room ' + roomId + ')';
-    turnOffTimerModule.set(oldMetrics);
-
-	return "TurnOffTimerModule_" + deviceId; // device id
 }
