@@ -1,10 +1,10 @@
 /*** PersonCounterModule ***
 
-Version: 1.1.2
+Version: 1.1.3
 -----------------------------------------------------------------------------
 Author: Philip Laube <phl111fg@fh-zwickau.de>, Patrick Hecker <pah111kg@fh-zwickau.de>, Simon Schwabe <sis111su@fh-zwickau.de>
 Description:
-    Creates a person counter device
+    Creates a person counter device. Should be created per room to keep track of the persons in a speicific room.
 ******************************************************************************/
 
 // ----------------------------------------------------------------------------
@@ -29,7 +29,7 @@ PersonCounterModule.prototype.init = function (config) {
 
     var self = this;
 
-	// Virtuel Device Definition
+	// Virtual Device Definition
 	// This object defines the interface for the ZAutomation API and the UI (Elements)
 	var vDev = self.controller.devices.create({
         deviceId: "PersonCounterModule_" + this.id,			// Identifier for ZAutomation API
@@ -44,10 +44,6 @@ PersonCounterModule.prototype.init = function (config) {
             deviceType: "sensorMultilevel",					// this deviceType enables the module as condition for logical rules
             metrics: {
 				scaleTitle: "Persons",
-
-				// this is the icon for the elements view
-				// icon is located in the modules 'htdocs' folder
-				// 'PersonCounterModule' from the link below is the module class name
 				icon: "/ZAutomation/api/v1/load/modulemedia/PersonCounterModule/icon.png"
 			}
         },
@@ -77,9 +73,6 @@ PersonCounterModule.prototype.init = function (config) {
         },
         moduleId: this.id
     });
-
-    // save the room id in metrics:roomId field of virtual device
-    vDev.set("metrics:roomId", this.config.room);
 };
 
 PersonCounterModule.prototype.stop = function () {
@@ -87,8 +80,3 @@ PersonCounterModule.prototype.stop = function () {
 
     PersonCounterModule.super_.prototype.stop.call(this);
 };
-
-
-// ----------------------------------------------------------------------------
-// --- Module methods
-// ----------------------------------------------------------------------------
