@@ -2,7 +2,7 @@
 	"singleton" : false,
 	"dependencies": [],
 	"category": "",
-	"author": "Simon Schwabe", "Zarina Omurova"
+	"author": "Simon Schwabe, Zarina Omurova",
 	"homepage": "",
 	"icon": "icon.png",
         "moduleName": "StandbyModule",
