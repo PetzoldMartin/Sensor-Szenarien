@@ -73,6 +73,8 @@ PersonCounterModule.prototype.init = function (config) {
         },
         moduleId: this.id
     });
+    
+    vDev.set("metrics:room", this.config.room);
 };
 
 PersonCounterModule.prototype.stop = function () {
