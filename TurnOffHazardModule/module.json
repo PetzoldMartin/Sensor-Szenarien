@@ -27,6 +27,10 @@
 					"enum": "namespaces:devices_switchBinary:deviceId,namespaces:devices_switchMultilevel:deviceId",
 					"required": true
 				}
+			},
+			"turnOffTimerDuration": {
+				"type": "integer",
+				"required": true
 			}
 		}
 	},
@@ -47,6 +51,11 @@
 						"optionLabels": "namespaces:devices_switchBinary:deviceName,namespaces:devices_switchMultilevel:deviceName"
 					}
 				}
+			},
+			"turnOffTimerDuration": {
+				"label": "__l_turn_off_timer_duration__",
+				"type": "integer",
+				"helper": "__l_turn_off_timer_duration_help__"
 			}
 		}
 	}

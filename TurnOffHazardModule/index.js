@@ -40,7 +40,11 @@ TurnOffHazardModule.prototype.init = function (config) {
         defaults: {
             metrics: {
                 title: 'Turn Off Hazard Module ' + this.id,
-                turnOffTimerModuleId: -1
+                turnOffTimerModuleId: -1,
+                personCount: 0
+                // TODO - no information about adult and child count from person identification
+                //adultCount: 0,
+                //childCount: 0
             }
         },
         // 'overlay' defines, how an module is presented in UI view 'Elements'
@@ -52,7 +56,10 @@ TurnOffHazardModule.prototype.init = function (config) {
         },
         handler: function (command, args) { // processing of incoming commands over ZAutomation API
             if(command === "hazardOff") {
-                var turnOffTimerDuration = 60;
+                var turnOffTimerDuration = 60; // default
+                if(self.config.turnOffTimerDuration) {
+                    var turnOffTimerDuration = self.config.turnOffTimerDuration;
+                }
 
                 // start turn off timer
                 var turnOffTimerModule = self.controller.devices.get(vDev.get('metrics:turnOffTimerModuleId'));
@@ -74,7 +81,7 @@ TurnOffHazardModule.prototype.init = function (config) {
                     // don't turn off any hazards
                 });
 
-                // unsubscribe event's after the double time off timer time (in the case that the turn off timer module does not work properly)
+                // unsubscribe event's after the double time of timer duration (in the case that the turn off timer module does not work properly)
                 self.unsubscribeEvents = setTimeout(function() {
                     self.controller.devices.off(self.vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.room + "_expired", function() {});
                     self.controller.devices.off(self.vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.room + "_canceled", function() {});
@@ -103,6 +110,7 @@ TurnOffHazardModule.prototype.init = function (config) {
     // This is only called when the system starts, this implies, that new modules
     // are after restarts only!
     self.controller.on("core.start", function() {
+        // Setup TurnOffTimerModule
         if (vDev.get('metrics:turnOffTimerModuleId') == -1) {
             var turnOffTimerModuleId = self.createTurnOffTimerModuleIfNotExist(self.config.room);
             vDev.set('metrics:turnOffTimerModuleId', turnOffTimerModuleId);
@@ -123,13 +131,32 @@ TurnOffHazardModule.prototype.init = function (config) {
                 if (personCounterVDev) {
                     var personCount = personCounterVDev.get("metrics:level");
 
-                    if(personCount < 1) {
-                        self.vDev.performCommand("hazardOff");
-                    }
+                    // TODO - this was initially a test, but it could also be a functionality
+                    // if(personCount < 1) {
+                    //     self.vDev.performCommand("hazardOff");
+                    // }
+
+                    // store person count
+                    vDev.set('metrics:personCount', personCount);
                 }
             });
         } else {
-            // TODO
+            // TODO - no PersonCounterModule found in current room, possibly notify the user
+        }
+
+        // // Subscribe PersonIdentificationModule events (PersonIdentificationModule of this room)
+        self.personIdentificationDeviceId = self.getPersonIdentificationDeviceId(self.config.room);
+        if (self.personIdentificationDeviceId) {
+            self.controller.devices.on(self.personIdentificationDeviceId, 'PersonIdentificationModule_' + self.config.room + '_no_adult_there', function() {
+                // no adult in room
+                self.vDev.performCommand("hazardOff");
+            });
+            self.controller.devices.on(self.personIdentificationDeviceId, 'PersonIdentificationModule_' + self.config.room + '_adult_there', function() {
+                // at least one adult in room
+                // TODO - hazardOn?
+            });
+        } else {
+            // TODO - no PersonIdentificationModule found in current room, possibly notify the user
         }
     });
 };
@@ -137,10 +164,17 @@ TurnOffHazardModule.prototype.init = function (config) {
 TurnOffHazardModule.prototype.stop = function () {
     var self = this;
 
+    // unsubscribe turn off timer events
     self.controller.devices.off(self.vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.room + "_expired", function() {});
     self.controller.devices.off(self.vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.room + "_canceled", function() {});
-    if(self.personCounterDeviceId) { // TODO
+    // unsubscribe person counter events
+    if(self.personCounterDeviceId) {
         self.controller.devices.off(self.personCounterDeviceId, "change:metrics:level", function() {});
+    }
+    // unsubscribe person identification events
+    if(self.personIdentificationDeviceId) {
+        self.controller.devices.off(self.personIdentificationDeviceId, 'PersonIdentificationModule_' + self.config.room + '_no_adult_there', function() {});
+        self.controller.devices.off(self.personIdentificationDeviceId, 'PersonIdentificationModule_' + self.config.room + '_adult_there', function() {});
     }
 
     if (self.unsubscribeEvents) {
@@ -184,6 +218,25 @@ TurnOffHazardModule.prototype.getPersonCounterDeviceId = function (roomId) {
 
     if (deviceId) {
         return "PersonCounterModule_" + deviceId; // device id
+    } else {
+        return null;
+    }
+}
+
+TurnOffHazardModule.prototype.getPersonIdentificationDeviceId = function (roomId) {
+    var self = this;
+    var deviceId = null;
+
+    self.controller.instances.forEach(function(instance) {
+        if(instance.moduleId === 'PersonIdentificationModule') {
+            if(instance.params.room == roomId) {
+                deviceId = instance.id;
+            }
+        }
+    });
+
+    if (deviceId) {
+        return "PersonIdentificationModule_" + deviceId; // device id
     } else {
         return null;
     }
