@@ -1,6 +1,6 @@
 /*** RoomAccessModule module ***
 
-Version: 1.2.0
+Version: 1.2.1
 -----------------------------------------------------------------------------
 Author: Philip Laube <phl111fg@fh-zwickau.de>, Patrick Hecker <pah111kg@fh-zwickau.de>, Simon Schwabe <sis111su@fh-zwickau.de>
 Description:
@@ -125,6 +125,7 @@ RoomAccessModule.prototype.setUpTransition = function (personCounterDeviceIdOne,
 
     personCounterDeviceOne.performCommand("person_left");
     personCounterDeviceTwo.performCommand("person_entered");
+    self.controller.devices.emit('RoomAccessModule_' + this.id + ':RoomAccessModule_' + personCounterDeviceOne.get("metrics:room") + '_' + personCounterDeviceOne.get("metrics:room") + '_transition_detected');
 };
 
 RoomAccessModule.prototype.stop = function () {
