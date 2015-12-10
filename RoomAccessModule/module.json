@@ -35,7 +35,7 @@
 					"properties": {
 						"roomAccessControlType": {
 							"type": "string",
-							"enum": ["Motion", "CO2", "Beacon"],
+							"enum": ["Motion"],
 							"required": true,
 							"default": "Motion"
 						},

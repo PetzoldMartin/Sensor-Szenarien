@@ -1,6 +1,6 @@
 /*** RoomAccessModule module ***
 
-Version: 1.2.2
+Version: 1.2.3
 -----------------------------------------------------------------------------
 Author: Philip Laube <phl111fg@fh-zwickau.de>, Patrick Hecker <pah111kg@fh-zwickau.de>, Simon Schwabe <sis111su@fh-zwickau.de>
 Description:
@@ -63,17 +63,7 @@ RoomAccessModule.prototype.init = function (config) {
     // the access in the stop function is necessary
     var personCounterDeviceIdOne = self.createPersonCounterIfNecessary(self.config.roomOne);
     
-        /*if(!personCounterDeviceOne) {
-        self.controller.addNotification("error", "RoomAccessModule (" + self.id + "): PersonCounterDevice (" + personCounterDeviceIdOne + ") for room (" + self.config.room + ") not found", "module", "RoomAccessModule");
-        stop();
-        }*/
-    
     var personCounterDeviceIdTwo = self.createPersonCounterIfNecessary(self.config.roomTwo);
-    
-        /*if(!personCounterDeviceTwo) {
-        self.controller.addNotification("error", "RoomAccessModule (" + self.id + "): PersonCounterDevice (" + personCounterDeviceIdTwo + ") for room (" + self.config.room + ") not found", "module", "RoomAccessModule");
-        stop();
-        }*/
 
     this.config.roomAccessControls.forEach(function(roomAccessControl) {
         if (roomAccessControl.roomAccessControlType === "Motion") {
@@ -110,10 +100,6 @@ RoomAccessModule.prototype.init = function (config) {
                     }
                 }
             });
-        } else if (roomAccessControl.roomAccessControlType === "CO2") {
-
-        } else if (roomAccessControl.roomAccessControlType === "Beacon") {
-
         }
     });
     // save the room id in metrics:roomId field of virtual device
@@ -128,10 +114,6 @@ RoomAccessModule.prototype.stop = function () {
         if (roomAccessControl.roomAccessControlType === "Motion") {
             self.controller.devices.off(roomAccessControl.roomAccessControlMotionSensor.motionSensorOne, 'change:metrics:level', function() {});
             self.controller.devices.off(roomAccessControl.roomAccessControlMotionSensor.motionSensorTwo, 'change:metrics:level', function() {});
-        } else if (roomAccessControl.roomAccessControlType === "CO2") {
-
-        } else if (roomAccessControl.roomAccessControlType === "Beacon") {
-
         }
     });
 
