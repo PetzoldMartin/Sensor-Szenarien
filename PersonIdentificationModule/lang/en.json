@@ -1,10 +1,23 @@
 {
     "m_title": "PersonIdentificationModule",
-    "m_descr": "Some Delta of a Sensor Value made for CO2 Sensor.",
-    "l_CO2_Sensor":"The CO2 Sensor of the Room",
-    "l_CO2_Sensor_help":"Please Choose Your CO2 Sensor"
-   
-
+    "m_descr": "When there is enough CO2 consumption and the highmeasurement korrekt its on in all othe cases off",
+    "l_CO2_Sensor": "The CO2 Sensor of the Room",
+    "l_CO2_Sensor_help": "Please Choose Your CO2 Sensor",
+    "l_DoorWindowContacts": "Contacts  door/windows are open or closed",
+    "l_SizeMeasurement": "sensors for high measurement",
+    "l_Personas": "Archetyps for CO2 consumption",
+    "l_RoomHigh": "High of the Room in Meter",
+    "l_RoomHigh_placeholder": "X Meter",
+    "l_RoomWidth": "Width of the Room in Meter",
+    "l_RoomWidth_placeholder": "X Meter",
+    "l_RoomLength": "Length of the Room in Meter",
+    "l_RoomLength_placeholder": "X Meter",
+    "l_room_id": "Id of the Room where the Modul Works",
+    "l_room_help": "RoomID",
+    "l_co_id": "CO2 Sensor correction Factor",
+    "l_co_help": "Factor",
+    "l_PersonenCounter": "The Person Counter of the Room",
+    "l_PersonenCounter_help": "ID"
 
 
 }

@@ -20,6 +20,13 @@
                 "datasource": "namespaces",
                 "enum": "namespaces:devices_sensorMultilevel:deviceId"
             },
+            "personCounter": {
+                "field": "enum",
+                "datasource": "namespaces",
+                "enum": "namespaces:devices_sensorMultilevel:deviceId",
+                "required": true
+            }
+            ,
             "doorWindowContacts": {
                 "type": "array",
                 "items": {
@@ -38,19 +45,16 @@
                     "required": false
                 }
             },
-            
-            
-                "personas": {
-                    "title": "Personas",
-                    "type": "array",
-                    "items": {
-                        "title": "Device",
-                        "type": "radio",
-                        "enum": ["Man", "Woman","Child"],
-                        "default": "Child",
-                        "required": true
-                    }
-                
+            "personas": {
+                "type": "array",
+                "items": {
+                    "title": "Device",
+                    "type": "radio",
+                    "enum": ["Man", "Woman", "Child"],
+                    "default": "Child",
+                    "required": true
+                }
+
             },
             "roomHigh": {
                 "type": "integer",
@@ -67,19 +71,11 @@
             "room": {
                 "type": "integer",
                 "required": true
-            }, 
+            },
             "correctionFactor": {
                 "type": "integer",
                 "required": true
-            },
-            "personCounter": {
-                "field": "enum",
-                "datasource": "namespaces",
-                "enum": "namespaces:devices_sensorMultilevel:deviceId",
-                "required": true
-
             }
-
         },
         "required": false
     },
@@ -93,6 +89,14 @@
                 "field": "optionLabels",
                 "optionLabels": "namespaces:devices_sensorMultilevel:deviceName",
                 "helper": "__l_CO2_Sensor_help__"
+            },
+            "personCounter": {
+                "label": "__l_PersonenCounter__",
+                "type": "select",
+                "datasource": "namespaces",
+                "field": "optionLabels",
+                "optionLabels": "namespaces:devices_sensorMultilevel:deviceName",
+                "helper": "__l_PersonenCounter_help__"
             },
             "doorWindowContacts": {
                 "label": "__l_DoorWindowContacts__",
@@ -116,15 +120,14 @@
                     }
                 }
             },
-            
-            
-                "personas": {
-                    "type": "array",
-                    "toolbarSticky": true,
-                    "items": {
-                        "type": "radio"
-                    }
-                
+            "personas": {
+                "label": "__l_Personas__",
+                "type": "array",
+                "toolbarSticky": true,
+                "items": {
+                    "type": "radio"
+                }
+
             },
             "roomHigh": {
                 "label": "__l_RoomHigh__",
@@ -146,20 +149,11 @@
                 "type": "integer",
                 "helper": "__l_room_help__"
             },
-            
             "correctionFactor": {
-               "label": "__l_co_id__",
+                "label": "__l_co_id__",
                 "type": "integer",
                 "helper": "__l_co_help__"
-            
-            },
-            "personenCounter": {
-                "label": "__l_PersonenCounter__",
-                "type": "select",
-                "datasource": "namespaces",
-                "field": "optionLabels",
-                "optionLabels": "namespaces:devices_sensorMultilevel:deviceName",
-                "helper": "__l_PersonenCounter_help__"
+
             }
         }
     }

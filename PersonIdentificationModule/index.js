@@ -7,6 +7,7 @@ _module = PersonIdentificationModule;
 PersonIdentificationModule.prototype.init = function (config) {
     PersonIdentificationModule.super_.prototype.init.call(this, config);
     var self = this;
+    this.highmeasureWaitingtime=2000;
     this.adultFound = false;
     this.deltaValueLastIntervall = 0;
     this.personCount = 0;
@@ -15,6 +16,11 @@ PersonIdentificationModule.prototype.init = function (config) {
     this.waitingMinutes = 0.25;
     this.roomVolume = 100000;
     this.correctionFaktor = 1;
+    this.highGetData = {
+        lastHighMeasurepoint: 0,
+        lastPValue: 0,
+        value: 0
+    };
     this.measuredata = {
         xList: new Array(),
         yList: new Array(),
@@ -27,6 +33,8 @@ PersonIdentificationModule.prototype.init = function (config) {
         maxPpm: ""
     };
     this.personas = new Array();
+    this.doorWindowContactsIds = new Array();
+    this.peopleSizeMeasurementIds = new Array();
 
     this.measuredata.getLastmeasurement = function () {
         if (this.yList.length === 0) {
@@ -47,11 +55,12 @@ PersonIdentificationModule.prototype.init = function (config) {
                 defaults: {
                     metrics: {
                         title: "CO2 Sensor Test Modul" + this.id,
-                        level: "0",
+                        level: "off",
                         room: -1,
                         correctionFactor: 1,
                         status: false,
                         personCount: "1",
+                        adultCount: "1",
                         alarmSwitchDeviceId: -1
                     }
                 },
@@ -124,27 +133,29 @@ PersonIdentificationModule.prototype.init = function (config) {
     var cO2SensorId = self.config.cO2Sensor;
     var persoCounterId = self.config.personCounter;
 
-    if (cO2SensorId & persoCounterId) {
+    if (cO2SensorId & persoCounterId & self.config.doorWindowContacts) {
         self.controller.devices.on(cO2SensorId, "change:metrics:level", function () {
-            //some seeing of overdriven measurepoints
-            var cO2Device = self.controller.devices.get(cO2SensorId);
-            if (self.measuredata.startTime === 0) {
-                self.measuredata.startTime = new Date().getTime();
-                self.makeMeasurePoint(cO2Device, self.measuredata);
-            } else {
-                if (self.measuredata.startTime + self.waitingMinutes * 60000 < new Date().getTime()) {
+            if (self.lookAfterOpenDandW(self.config.doorWindowContacts, self)) {
+                //some seeing of overdriven measurepoints
+                var cO2Device = self.controller.devices.get(cO2SensorId);
+                if (self.measuredata.startTime === 0) {
+                    self.measuredata.startTime = new Date().getTime();
                     self.makeMeasurePoint(cO2Device, self.measuredata);
-                    self.line = self.getRegressionLineParameter(self.measuredata, self.line);
-                    var delta = ((self.getRegressionLineValue(self.line, self.measuredata.xList[self.measuredata.xList.length - 1])) - (self.getRegressionLineValue(self.line, self.measuredata.xList[0])))
-                            * self.correctionFaktor;
-                    //eigentlich sollte das immer beim init passieren aber es geht nicht der mist
-                    self.readPersonCounter(persoCounterId, self.measuredata);
-
-                    //
-                    self.makeStatement(self.identify(delta, self.personas, self.personCount, self.roomVolume, self.waitingMinutes), self);
-                    self.controller.addNotification("info", "PersonIdentificationModule " + self.adultFound + "new status" + delta, "module", "PersonIdentificationModule");
                 } else {
-                    self.makeMeasurePoint(cO2Device, self.measuredata);
+                    if (self.measuredata.startTime + self.waitingMinutes * 60000 < new Date().getTime()) {
+                        self.makeMeasurePoint(cO2Device, self.measuredata);
+                        self.line = self.getRegressionLineParameter(self.measuredata, self.line);
+                        var delta = ((self.getRegressionLineValue(self.line, self.measuredata.xList[self.measuredata.xList.length - 1])) - (self.getRegressionLineValue(self.line, self.measuredata.xList[0])))
+                                * self.correctionFaktor;
+                        //eigentlich sollte das immer beim init passieren aber es geht nicht der mist
+                        self.readPersonCounter(persoCounterId, self.measuredata);
+
+                        //
+                        self.makeStatement(self.identify(delta, self.personas, self.personCount, self.roomVolume, self.waitingMinutes), self);
+                        self.controller.addNotification("info", "PersonIdentificationModule " + self.adultFound + "new status" + delta, "module", "PersonIdentificationModule");
+                    } else {
+                        self.makeMeasurePoint(cO2Device, self.measuredata);
+                    }
                 }
             }
         });
@@ -152,14 +163,40 @@ PersonIdentificationModule.prototype.init = function (config) {
 
     if (persoCounterId) {
         self.controller.devices.on(persoCounterId, "change:metrics:level", function () {
+            var pcOld = self.personCount;
             self.readPersonCounter(persoCounterId, self.measuredata);
             self.makeStatement(false, self);
+            self.highGetData.lastPValue = new Date().getTime();
+            self.highGetData.value = self.personCount-pcOld;
+            self.lookForAdult(self);
+
         });
     }
 
+    self.config.doorWindowContacts.forEach(
+            function (each) {
+                self.controller.devices.on(each, "change:metrics:level", function () {
+                    self.makeStatement(false, self);
+                });
+            }
+    );
+    self.config.peopleSizeMeasurement.forEach(
+            function (each) {
+                self.controller.devices.on(each, "change:metrics:level", function () {
+                    if (self.personCount === 0) {
+                        self.personCount = self.readPersonCounter(persoCounterId, self.measuredata);
 
+                    }
+                    var measurePoint = self.controller.devices.get(each);
+                    if (measurePoint.get("metrics:level") === "on") {
+                        self.highGetData.lastHighMeasurepoint = new Date().getTime();
+                        self.lookForAdult(self);
+                    }
+                });
+            }
+    );
 
-    self.controller.addNotification("info", "PersonIdentificationModule pc: " + self.personCount, "module", "PersonIdentificationModule");
+    self.controller.addNotification("info", "PersonIdentificationModule init Success ", "module", "PersonIdentificationModule");
 
 };
 
@@ -169,11 +206,55 @@ PersonIdentificationModule.prototype.stop = function () {
     this.controller.devices.remove("core.start", function () {});
     this.controller.devices.remove(this.config.cO2Sensor, "change:metrics:level", function () {});
     this.controller.devices.remove(this.config.personCounter, "change:metrics:level", function () {});
+    this.config.doorWindowContacts.forEach(
+            function (each) {
+                this.controller.devices.remove(each, "change:metrics:level", function () {});
+            }
+    );
+    this.config.peopleSizeMeasurement.forEach(
+            function (each) {
+                this.controller.devices.remove(each, "change:metrics:level", function () {});
+            }
+    );
     this.controller.devices.remove("PersonIdentificationModule_" + this.id);
     PersonIdentificationModule.super_.prototype.stop.call(this);
 
 };
+
 // here you can add your own functions ...
+
+/**
+ * The Method Who looks if there is a measurePoint from Highmeasurement and an PersonCounter Change,
+ * if there is both it compares the timestamps and resets them
+ * @param {PersonIdentificationModule} self the Module who needs a highGetData Object and an highmeasureWaitingtime Variable
+ * @returns {nothing}
+ */
+PersonIdentificationModule.prototype.lookForAdult = function (self) {
+    var time = self.highGetData.lastPValue;
+    var oTime = self.highGetData.lastHighMeasurepoint;
+    var value = self.highGetData.value;
+    if (!(time === 0 | oTime === 0)) {
+        if (oTime !== 0 & oTime <= time + self.highmeasureWaitingtime & oTime >= time - self.highmeasureWaitingtime) {
+            if (value !== 0) {
+                self.adultCount += value;
+            }
+        }
+        this.highGetData = {
+            lastHighMeasurepoint: 0,
+            lastPValue: 0,
+            value: 0
+        };
+    }
+    self.controller.addNotification("info", "PersonIdentificationModule acounr " + self.adultCount, "module", "PersonIdentificationModule");
+
+};
+
+/**
+ * puts an Measurepoint in an Measuredata
+ * @param {MultiLevelSensor} CO2Device
+ * @param {Object} measureData
+ * @returns {measureData}
+ */
 PersonIdentificationModule.prototype.makeMeasurePoint = function (CO2Device, measureData) {
     measureData.xList.push((new Date().getTime() - measureData.startTime));
     measureData.yList.push(CO2Device.get("metrics:level"));
@@ -181,10 +262,22 @@ PersonIdentificationModule.prototype.makeMeasurePoint = function (CO2Device, mea
     return measureData;
 };
 
+/**
+ * return the Y Value of an line function
+ * @param {object} line
+ * @param {double} x
+ * @returns {double}
+ */
 PersonIdentificationModule.prototype.getRegressionLineValue = function (line, x) {
     return line.a * x + line.b;
 };
 
+/**
+ * Method to calculate a regression Line out off Measurepoints through mkq
+ * @param {object} measuredata
+ * @param {object} line
+ * @returns {line}
+ */
 PersonIdentificationModule.prototype.getRegressionLineParameter = function (measuredata, line) {
     var delta = 0;
     var sumXY = 0;
@@ -204,11 +297,14 @@ PersonIdentificationModule.prototype.getRegressionLineParameter = function (meas
     return line;
 };
 
-PersonIdentificationModule.prototype.getppmChangePerAdult = function (roomVolume) {
-    var ppm = this.ppmValue * this.adultMinVolume / roomVolume;
-    return ppm;
-};
-
+/**
+ * Makes an Persona Objekt out of Parameters
+ * @param {string} name
+ * @param {int} minVLM
+ * @param {int} maxVLM
+ * @param {int} ppmValue
+ * @returns {persona}
+ */
 PersonIdentificationModule.prototype.makePersona = function (name, minVLM, maxVLM, ppmValue) {
     return persona = {
         kind: name,
@@ -218,6 +314,12 @@ PersonIdentificationModule.prototype.makePersona = function (name, minVLM, maxVL
 
 };
 
+/**
+ * Makes an Persona out of an keyword and the ppmValue
+ * @param {string} kind
+ * @param {int} ppmValue
+ * @returns {persona}
+ */
 PersonIdentificationModule.prototype.makePersonaByKind = function (kind, ppmValue) {
     switch (kind) {
         case "Man":
@@ -229,6 +331,16 @@ PersonIdentificationModule.prototype.makePersonaByKind = function (kind, ppmValu
     }
 
 };
+
+/**
+ * Looks if the CO2 Consumption is high enough that there is an adult
+ * @param {double} delta delta CO2 change
+ * @param {object} personas persona array
+ * @param {int} personCount
+ * @param {int} roomVolume in Liter
+ * @param {int} waitingMinutes
+ * @returns {Boolean}
+ */
 PersonIdentificationModule.prototype.identify = function (delta, personas, personCount, roomVolume, waitingMinutes) {
     //for this Modul undefined person Count Values
     if (personCount === 0 || personCount > personas.length) {
@@ -257,10 +369,22 @@ PersonIdentificationModule.prototype.identify = function (delta, personas, perso
     }
 };
 
+/**
+ * get the ppm level from a person constant ppm for a special roomvolume after a time
+ * @param {double} ppmOfPerson
+ * @param {int} roomVolume
+ * @param {double} waitingMinutes
+ * @returns {unresolved}
+ */
 PersonIdentificationModule.prototype.getPpmByRoomAndTime = function (ppmOfPerson, roomVolume, waitingMinutes) {
     return   (ppmOfPerson / roomVolume) * waitingMinutes;
 };
 
+/**
+ * Searching an maxximum value of an integer array and pops it from array
+ * @param {integer:array} array
+ * @returns {PersonIdentificationModule.prototype.popMaxOfAnIntegerArray.array}
+ */
 PersonIdentificationModule.prototype.popMaxOfAnIntegerArray = function (array) {
     var max = null;
     var tCount = 0;
@@ -279,6 +403,11 @@ PersonIdentificationModule.prototype.popMaxOfAnIntegerArray = function (array) {
     return max;
 };
 
+/**
+ * inits a Measurementdata object to an blank one
+ * @param {object} measuredata to clean
+ * @returns {measuredata}
+ */
 PersonIdentificationModule.prototype.initMeasureData = function (measuredata) {
     measuredata = {
         xList: new Array(),
@@ -289,23 +418,58 @@ PersonIdentificationModule.prototype.initMeasureData = function (measuredata) {
     return measuredata;
 };
 
+/**
+ * Reads the value of an PersonCounter
+ * @param {string} persoCounterId
+ * @param {object} measureData
+ * @returns {undefined}
+ */
 PersonIdentificationModule.prototype.readPersonCounter = function (persoCounterId, measureData) {
     var personCounterDevice = this.controller.devices.get(persoCounterId);
     this.personCount = personCounterDevice.get("metrics:level");
     this.initMeasureData(measureData);
 };
 
+/**
+ * set the Status of the PersonIdentificationModule
+ * @param {boolean} bool
+ * @param {PersonIdentificationModule} self
+ * @returns {undefined}
+ */
 PersonIdentificationModule.prototype.makeStatement = function (bool, self) {
-    if (bool) {
+    if (bool&self.adultCount>0) {
         self.adultFound = true;
-        self.vDev.set("metrics:level", 1);
+        self.vDev.set("metrics:level", "on");
         self.vDev.set("metrics:status", true);
         self.controller.devices.emit(self.eventID + '_adult_there');
     } else {
         self.adultFound = false;
-        self.vDev.set("metrics:level", 0);
+        self.vDev.set("metrics:level", "off");
         self.vDev.set("metrics:status", false);
         self.controller.devices.emit(self.eventID + '_no_adult_there');
     }
+    self.controller.addNotification("info", "PersonIdentificationModule new Level: " + self.vDev.get("metrics:level"), "module", "PersonIdentificationModule");
 
+};
+
+/**
+ * Looks if there is an open door or Window Contact
+ * @param {binarySwitch:array} doorContacts
+ * @param {PersonIdentificationModule} self
+ * @returns {Boolean}
+ */
+PersonIdentificationModule.prototype.lookAfterOpenDandW = function (doorContacts, self) {
+    if (doorContacts === null) {
+        return true;
+    }
+    doorContacts.forEach(
+            function (each) {
+                var eachBinarySwitch = this.controller.devices.get(each);
+                if (eachBinarySwitch.get("metrics:level") === "off") {
+                    self.makeStatement(false, self);
+                    return false;
+                }
+            }
+    );
+    return true;
 };
