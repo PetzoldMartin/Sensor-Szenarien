@@ -1,6 +1,6 @@
 {
 	"m_title":"Abschalt Timer Modul",
-	"m_descr":"Dieses Modul kann einen Timer mit einer individuell festgelegten Ablaufzeit starten. Nach Ablauf des Timers wird eine definierte Szene ausgelöst. Zur Ausführung bedarf die App mindestens zweier Werte: Die Ablaufzeit des Timers und die auszulösende Szene.",
-	"l_room_id":"Geben Sie die Raum ID ein",
+	"m_descr":"Dieses Modul startet einen Timer mit einer individuell festgelegten Ablaufzeit. Nach Ablauf des Timers oder wenn der Timer unterbrochen wurde, wird ein entsprechendes Event ausgelöst.",
+	"l_room_id":"Geben Sie eine Raum ID ein",
 	"l_room_help":"Sie finden die Raum ID in den Einstellungen <span class='glyphicon glyphicon-arrow-right'></span> Räume <span class='glyphicon glyphicon-arrow-right'></span>"
 }
