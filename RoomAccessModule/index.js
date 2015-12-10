@@ -1,6 +1,6 @@
 /*** RoomAccessModule module ***
 
-Version: 1.2.1
+Version: 1.2.2
 -----------------------------------------------------------------------------
 Author: Philip Laube <phl111fg@fh-zwickau.de>, Patrick Hecker <pah111kg@fh-zwickau.de>, Simon Schwabe <sis111su@fh-zwickau.de>
 Description:
@@ -28,6 +28,9 @@ RoomAccessModule.prototype.init = function (config) {
     RoomAccessModule.super_.prototype.init.call(this, config);
 
     var self = this;
+    
+    // Time for checking for a transition with the second sensor in milliseconds
+    var motionSensorTime = 5000;
 
     var lastEventMotionSensorOne;
     var lastEventMotionSensorTwo;
@@ -87,7 +90,7 @@ RoomAccessModule.prototype.init = function (config) {
                 if(level == 'on') {
                     self.lastEventMotionSensorOne = new Date().getTime();
                     //self.controller.addNotification("info", "RoomAccessModule (" + self.id + "): Motion Sensor One (" + motionSensorOne + ") for room (" + self.config.room + ") fired", "module", "RoomAccessModule");
-                    if(new Date().getTime() - self.lastEventMotionSensorTwo < 5000) {
+                    if(new Date().getTime() - self.lastEventMotionSensorTwo < motionSensorTime) {
                         self.setUpTransition(personCounterDeviceIdTwo, personCounterDeviceIdOne);
                     }
                 }
@@ -102,7 +105,7 @@ RoomAccessModule.prototype.init = function (config) {
                 if(level == 'on') {
                     self.lastEventMotionSensorTwo = new Date().getTime();
 
-                    if(new Date().getTime() - self.lastEventMotionSensorOne < 5000) {
+                    if(new Date().getTime() - self.lastEventMotionSensorOne < motionSensorTime) {
                         self.setUpTransition(personCounterDeviceIdOne, personCounterDeviceIdTwo);
                     }
                 }
@@ -116,16 +119,6 @@ RoomAccessModule.prototype.init = function (config) {
     // save the room id in metrics:roomId field of virtual device
     vDev.set("metrics:roomIdOne", this.config.roomOne);
     vDev.set("metrics:roomIdTwo", this.config.roomTwo);
-};
-
-RoomAccessModule.prototype.setUpTransition = function (personCounterDeviceIdOne, personCounterDeviceIdTwo) {
-    var self = this;
-    var personCounterDeviceOne = self.controller.devices.get("PersonCounterModule_" + personCounterDeviceIdOne);
-    var personCounterDeviceTwo = self.controller.devices.get("PersonCounterModule_" + personCounterDeviceIdTwo);
-
-    personCounterDeviceOne.performCommand("person_left");
-    personCounterDeviceTwo.performCommand("person_entered");
-    self.controller.devices.emit('RoomAccessModule_' + this.id + ':RoomAccessModule_' + personCounterDeviceOne.get("metrics:room") + '_' + personCounterDeviceOne.get("metrics:room") + '_transition_detected');
 };
 
 RoomAccessModule.prototype.stop = function () {
@@ -145,6 +138,20 @@ RoomAccessModule.prototype.stop = function () {
     this.controller.devices.remove("RoomAccessModule_" + this.id);
 
     RoomAccessModule.super_.prototype.stop.call(this);
+};
+
+// ----------------------------------------------------------------------------
+// --- Module methods
+// ----------------------------------------------------------------------------
+
+RoomAccessModule.prototype.setUpTransition = function (personCounterDeviceIdOne, personCounterDeviceIdTwo) {
+    var self = this;
+    var personCounterDeviceOne = self.controller.devices.get("PersonCounterModule_" + personCounterDeviceIdOne);
+    var personCounterDeviceTwo = self.controller.devices.get("PersonCounterModule_" + personCounterDeviceIdTwo);
+
+    personCounterDeviceOne.performCommand("person_left");
+    personCounterDeviceTwo.performCommand("person_entered");
+    self.controller.devices.emit('RoomAccessModule_' + this.id + ':RoomAccessModule_' + personCounterDeviceOne.get("metrics:room") + '_' + personCounterDeviceOne.get("metrics:room") + '_transition_detected');
 };
 
 RoomAccessModule.prototype.createPersonCounterIfNecessary = function (roomId) {
@@ -180,7 +187,3 @@ RoomAccessModule.prototype.createPersonCounterIfNecessary = function (roomId) {
 
     return deviceId;
 };
-
-// ----------------------------------------------------------------------------
-// --- Module methods
-// ----------------------------------------------------------------------------
