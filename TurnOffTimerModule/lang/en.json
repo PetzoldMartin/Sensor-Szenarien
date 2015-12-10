@@ -2,5 +2,5 @@
 	"m_title":"Turn Off Timer Module",
 	"m_descr":"This app starts a timer with a defined time. After expiring the timer triggers a defined scene. The app requires at least two values to function: The count down time and the destination scene.",
 	"l_room_id":"Enter a room id",
-	"l_room_help":"You can find the room id in the Settings <span class='glyphicon glyphicon-arrow-right'></span> Rooms <span class='glyphicon glyphicon-arrow-right'></span>",
+	"l_room_help":"You can find the room id in the Settings <span class='glyphicon glyphicon-arrow-right'></span> Rooms <span class='glyphicon glyphicon-arrow-right'></span>"
 }
