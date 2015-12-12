@@ -5,6 +5,8 @@
 	"off":"Off",
 	"standby":"Standby",
 	"standby_help":"This specifies the flats standby status.",
+	"l_room_id":"Enter a room id",
+	"l_room_help":"You can find the room id in the Settings <span class='glyphicon glyphicon-arrow-right'></span> Rooms <span class='glyphicon glyphicon-arrow-right'></span> Edit the specific room <span class='glyphicon glyphicon-arrow-right'></span> last character in the URL",
 	"l_switches":"List of switches",
 	"l_dimmers":"List of dimmers",
 	"l_level":"Level"

@@ -18,7 +18,7 @@
 			"standby": {
 	            "field": "enum",
 	            "datasource": "namespaces",
-	            "enum": "namespaces:devices_switchControl:deviceId"
+	            "enum": "namespaces:devices_buttonControl:deviceId"
 	        },
 			"switches": {
 				"type": "array",
@@ -28,7 +28,7 @@
 						"device": {
 							"field": "enum",
 							"datasource": "namespaces",
-							"enum": "namespaces:devices_switchBinary:deviceId,namespaces:devices_switchMultilevel:deviceId",
+							"enum": "namespaces:devices_switchBinary:deviceId",
 							"required": true
 						},
 						"status": {
@@ -47,7 +47,7 @@
 						"device": {
 							"field": "enum",
 							"datasource": "namespaces",
-							"enum": "namespaces:devices_switchMultilevel:deviceId,namespaces:devices_switchMultilevel:deviceId",
+							"enum": "namespaces:devices_switchMultilevel:deviceId",
 							"required": true
 						},
 						"status": {
@@ -58,6 +58,10 @@
 						}
 					}
 				}
+			},
+			"room": {
+				"type": "integer",
+				"required": true
 			}
 	    },
 	    "required": true
@@ -69,7 +73,7 @@
 	            "type": "select",
 	            "datasource": "namespaces",
 	            "field": "optionLabels",
-	            "optionLabels": "namespaces:devices_switchControl:deviceName",
+	            "optionLabels": "namespaces:devices_buttonControl:deviceName",
 	            "helper": "__standby_help__"
 	        },
 			"switches": {
@@ -82,7 +86,7 @@
 								"type": "select",
 								"datasource": "namespaces",
 								"field": "optionLabels",
-								"optionLabels": "namespaces:devices_switchBinary:deviceName,namespaces:devices_switchMultilevel:deviceId"
+								"optionLabels": "namespaces:devices_switchBinary:deviceName"
 							},
 							"status": {
 								"label": "",
@@ -102,14 +106,20 @@
 								"type": "select",
 								"datasource": "namespaces",
 								"field": "optionLabels",
-								"optionLabels": "namespaces:devices_switchMultilevel:deviceName,namespaces:devices_switchMultilevel:deviceId"
+								"optionLabels": "namespaces:devices_switchMultilevel:deviceName"
 							},
 							"status": {
 								"label": "__l_level__"
+							
 							}
 						}
 					}
 				}
+			},
+			"room": {
+				"label": "__l_room_id__",
+				"type": "integer",
+				"helper": "__l_room_help__"
 			}
 	    }
 	}

@@ -29,6 +29,7 @@ StandbyModule.prototype.init = function (config) {
 
     var self = this;
 
+
     // *********************************
     // *** Virtual Device Definition ***
     // *********************************
@@ -53,21 +54,53 @@ StandbyModule.prototype.init = function (config) {
         },
         moduleId: this.id
     });
+	  
+ // save the room id in metrics:roomId field of virtual device
 
+	 if(self.config.room) {
+        vDev.set("metrics:roomId", self.config.room);
+    }
     self.controller.devices.on('LockDoorModule_locked', function() {
         // set configured devices in defined standby state
+		var room = vDev.get("metrics:room");
+		
+		self.config.switches.forEach(function(devState) {
+                var vDev = self.controller.devices.get(devState.device);
+                if (vDev) {
+                    vDev.performCommand(devState.status);
+                }
+            });
+		self.config.dimmers.forEach(function(devState) {
+                var vDev = self.controller.devices.get(devState.device);
+                if (vDev) {
+                    vDev.performCommand("exact", { level: devState.status });
+                }
+            });
+			
 		vDev.set("metrics:level", "put devices to standby");
-		self.turnOffDevices();
-		self.controller.devices.emit("Standby_On");
-		self.controller.addNotification("info", "Standby on, devices turned off", "module", "StandbyModule");
-        
-    });
+		self.controller.devices.emit(vDev.deviceId + ':StandbyModule_' + room + '_started');
+		self.controller.addNotification("info", "Standby started, set devices to defined state", "module", "StandbyModule");
+	 });
 
     self.controller.devices.on('LockDoorModule_unlocked', function() {
+		var room = vDev.get("metrics:room");
+		
+		self.config.switches.forEach(function(devState) {
+                var vDev = self.controller.devices.get(devState.device);
+                if (vDev) {
+                    vDev.performCommand("on");
+                }
+            });
+		self.config.dimmers.forEach(function(devState) {
+                var vDev = self.controller.devices.get(devState.device);
+                if (vDev) {
+                    vDev.performCommand("exact", { level: 99 });
+                }
+            });
+	
 		vDev.set("metrics:level", "finished standby");
-		self.turnOnDevices();
-		self.controller.devices.emit("Standby_Off");
-		self.controller.addNotification("info", "Standby off, devices turned on", "module", "StandbyModule");
+		self.controller.devices.emit(vDev.deviceId + ':StandbyModule_' + room + '_stopped');
+		self.controller.addNotification("info", "Standby stopped, devices turned on", "module", "StandbyModule");
     });
 };
 
@@ -79,42 +112,3 @@ StandbyModule.prototype.stop = function () {
 
     StandbyModule.super_.prototype.stop.call(this);
 };
-
-StandbyModule.prototype.turnOffDevices = function () {
-    var self = this;
-
-    self.config.switches.forEach(function(el) {
-        var vDev = self.controller.devices.get(el);
-
-        if (vDev) {
-            var deviceType = vDev.get("deviceType");
-
-            if (deviceType === "switchBinary") {
-                vDev.performCommand("off");
-				
-            } else if (deviceType === "switchMultilevel") {
-                vDev.performCommand("exact", { level: 0 });
-            }
-        }
-	
-    });
-}
-StandbyModule.prototype.turnOnDevices = function () {
-    var self = this;
-
-    self.config.switches.forEach(function(el) {
-        var vDev = self.controller.devices.get(el);
-
-        if (vDev) {
-            var deviceType = vDev.get("deviceType");
-
-            if (deviceType === "switchBinary") {
-                vDev.performCommand("on");
-				
-            } else if (deviceType === "switchMultilevel") {
-                vDev.performCommand("exact", { level: 99 });
-            }
-        }
-		
-    });
-}
