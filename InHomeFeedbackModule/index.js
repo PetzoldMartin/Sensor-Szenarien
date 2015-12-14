@@ -1,7 +1,3 @@
-// TODO
-// - configuration parameters
-// - events
-
 /* In Home Feedback Module
  *
  * Version: 1.1.0
@@ -32,6 +28,8 @@ InHomeFeedbackModule.prototype.init = function (config) {
     InHomeFeedbackModule.super_.prototype.init.call(this, config);
 
     var self = this;
+
+    self.debug = false;
 
     // Initialize additional libraries
     // https://github.com/jakesgordon/javascript-state-machine
@@ -81,7 +79,10 @@ InHomeFeedbackModule.prototype.init = function (config) {
 
 					if (command == "start") {
 						// store duration in module object to get access in transition of state machine
-						self.duration = self.config.duration;
+                        self.duration = 60;
+                        if(self.config.defaultValues && self.config.defaultValues.duration) {
+                            self.duration = self.config.defaultValues.duration;
+                        }
 						if (args.duration) {
 							self.duration = args.duration;
 						}
@@ -94,7 +95,10 @@ InHomeFeedbackModule.prototype.init = function (config) {
 
 					if (command == "defer") {
 						// store defer in module object to get access in transition of state machine
-						self.defermentDuration = self.config.deferment;
+                        self.defermentDuration = 60;
+                        if(self.config.defaultValues && self.config.defaultValues.deferment) {
+                            self.defermentDuration = self.config.defaultValues.deferment;
+                        }
 						if (args.duration) {
 							self.defermentDuration = args.duration;
 						}
@@ -115,6 +119,12 @@ InHomeFeedbackModule.prototype.init = function (config) {
                         'state': self.fsm.current
                     }
                 }
+            } else if(command == 'setDebugMode') {
+                if (args.debugMode && args.debugMode == 'true') {
+                    self.debug = true;
+                } else {
+                    self.debug = false;
+                }
             } else {
                 return {
                     'code': 1,
@@ -130,25 +140,27 @@ InHomeFeedbackModule.prototype.init = function (config) {
     self.vDev = vDev;
 
     // save the room id in metrics:roomId field of virtual device
-    if(self.config.room) {
-        vDev.set("metrics:roomId", self.config.room);
+    if(self.config.commonOptions.room) {
+        vDev.set("metrics:roomId", self.config.commonOptions.room);
     }
 
     // add listener for cancel switch
-    if(self.config.cancelSwitch) {
-        self.controller.devices.on(self.config.cancelSwitch, "change:metrics:level", function() {
+    if(self.config.cancelMechanism.cancelSwitch) {
+        self.controller.devices.on(self.config.cancelMechanism.cancelSwitch, "change:metrics:level", function() {
             self.fsm.cancel();
         });
     }
 
     // setup the defer switchtes
-    self.config.deferSwitches.forEach(function(el) {
-        self.controller.devices.on(el.deferSwitch, "change:metrics:level", function() {
-            self.defermentDuration = el.deferSwitchDuration;
+    if(self.config.deferSwitchesContainer) {
+        self.config.deferSwitchesContainer.deferSwitches.forEach(function(el) {
+            self.controller.devices.on(el.deferSwitch, "change:metrics:level", function() {
+                self.defermentDuration = el.deferSwitchDuration;
 
-            self.fsm.defer();
+                self.fsm.defer();
+            });
         });
-    });
+    }
 };
 
 InHomeFeedbackModule.prototype.stop = function () {
@@ -156,7 +168,7 @@ InHomeFeedbackModule.prototype.stop = function () {
 
     self.stopAllFeedbackMechanism();
 
-    self.controller.devices.off(self.config.cancelSwitch, "change:metrics:level", function() {});
+    self.controller.devices.off(self.config.cancelMechanism.cancelSwitch, "change:metrics:level", function() {});
 
     self.controller.devices.remove("InHomeFeedbackModule_" + self.id);
 
@@ -176,8 +188,8 @@ InHomeFeedbackModule.prototype.startVisualActuatorsMechanism = function () {
 
     // save previous level
     self.visualActuatorsPreviousState = new Array();
-    if (self.config.visualActuators) {
-        self.config.visualActuators.forEach(function(el) {
+    if (self.config.feedbackMechanism.visualActuators) {
+        self.config.feedbackMechanism.visualActuators.forEach(function(el) {
             var vDev = self.controller.devices.get(el);
 
             self.visualActuatorsPreviousState.push(new Array(el, vDev.get('deviceType'), vDev.get("metrics:level")));
@@ -185,38 +197,34 @@ InHomeFeedbackModule.prototype.startVisualActuatorsMechanism = function () {
     }
 
     // check if any visual actuators are configured
-    if (self.config.visualActuators) {
+    if (self.config.feedbackMechanism.visualActuators) {
         // run endless loop (on-off-on-off-on-...)
         self.visualActuatorsTimer = setInterval(function() {
             if (visualActuatorsActive) {
-                self.config.visualActuators.forEach(function(el) {
+                self.config.feedbackMechanism.visualActuators.forEach(function(el) {
                     var vDev = self.controller.devices.get(el);
 
                     if (vDev) {
                         var deviceType = vDev.get("deviceType");
 
                         if (deviceType === "switchBinary") {
-                            //vDev.set("metrics:level", 'off');
                             vDev.performCommand("off");
                         } else if (deviceType === "switchMultilevel") {
-                            //vDev.set("metrics:level", '0');
                             vDev.performCommand("exact", { level: 0 });
                         }
                     }
                 });
                 visualActuatorsActive = false;
             } else {
-                self.config.visualActuators.forEach(function(el) {
+                self.config.feedbackMechanism.visualActuators.forEach(function(el) {
                     var vDev = self.controller.devices.get(el);
 
                     if (vDev) {
                         var deviceType = vDev.get("deviceType");
 
                         if (deviceType === "switchBinary") {
-                            //vDev.set("metrics:level", 'on');
                             vDev.performCommand("on");
                         } else if (deviceType === "switchMultilevel") {
-                            //vDev.set("metrics:level", '99');
                             vDev.performCommand("exact", { level: 99 });
                         }
                     }
@@ -359,16 +367,22 @@ InHomeFeedbackModule.prototype.initFSM = function() {
 
             // log current state
             onenterstate: function(event, from, to) {
-                self.controller.addNotification("info", "InHomeFeedbackModule state from: " + from + " to: " + to + " (Event: " + event + ")", "module", "InHomeFeedbackModule");
+                if(self.debug) {
+                    self.controller.addNotification("info", "InHomeFeedbackModule state from: " + from + " to: " + to + " (Event: " + event + ")", "module", "InHomeFeedbackModule");
+                }
             }
         }
     });
 
     function startTrans(event, from, to) {
         if (self.endless) {
-            self.controller.addNotification("info", "InHomeFeedbackModule start feedback mechanism.", "module", "InHomeFeedbackModule");
+            if(self.debug) {
+                self.controller.addNotification("info", "InHomeFeedbackModule start feedback mechanism.", "module", "InHomeFeedbackModule");
+            }
         } else {
-            self.controller.addNotification("info", "InHomeFeedbackModule start feedback mechanism for the next " + self.duration + " seconds.", "module", "InHomeFeedbackModule");
+            if(self.debug) {
+                self.controller.addNotification("info", "InHomeFeedbackModule start feedback mechanism for the next " + self.duration + " seconds.", "module", "InHomeFeedbackModule");
+            }
         }
 
         // emit event: [deviceId]:feedback_module_[roomId]_started
@@ -376,35 +390,45 @@ InHomeFeedbackModule.prototype.initFSM = function() {
     };
 
     function deferTrans(event, from, to) {
-        self.controller.addNotification("info", "InHomeFeedbackModule defer feedback mechanism for the next " + self.defermentDuration + " seconds.", "module", "InHomeFeedbackModule");
+        if(self.debug) {
+            self.controller.addNotification("info", "InHomeFeedbackModule defer feedback mechanism for the next " + self.defermentDuration + " seconds.", "module", "InHomeFeedbackModule");
+        }
 
         // emit event: [deviceId]:feedback_module_[roomId]_deferred
         self.controller.devices.emit(self.vDev.deviceId + ':InHomeFeedbackModule_' + self.vDev.get("metrics:roomId") + '_deferred');
     };
 
     function continueTrans(event, from, to) {
-        self.controller.addNotification("info", "InHomeFeedbackModule continue feedback mechanism.", "module", "InHomeFeedbackModule");
+        if(self.debug) {
+            self.controller.addNotification("info", "InHomeFeedbackModule continue feedback mechanism.", "module", "InHomeFeedbackModule");
+        }
 
         // emit event: [deviceId]:feedback_module_[roomId]_continued
         self.controller.devices.emit(self.vDev.deviceId + ':InHomeFeedbackModule_' + self.vDev.get("metrics:roomId") + '_continued');
     };
 
     function stopTrans(event, from, to) {
-        self.controller.addNotification("info", "In Home Feedback Module stopped manually feedback mechanism,", "module", "InHomeFeedbackModule");
+        if(self.debug) {
+            self.controller.addNotification("info", "In Home Feedback Module stopped manually feedback mechanism.", "module", "InHomeFeedbackModule");
+        }
 
         // emit event: [deviceId]:feedback_module_[roomId]_stopped_manual
         self.controller.devices.emit(self.vDev.deviceId + ':InHomeFeedbackModule_' + self.vDev.get("metrics:roomId") + '_stopped_manual');
     };
 
     function timeoutTrans(event, from, to) {
-        self.controller.addNotification("info", "In Home Feedback Module stopped normally feedback mechanism", "module", "InHomeFeedbackModule");
+        if(self.debug) {
+            self.controller.addNotification("info", "In Home Feedback Module stopped normally feedback mechanism.", "module", "InHomeFeedbackModule");
+        }
 
         // emit event: [deviceId]:feedback_module_[roomId]_stopped_normal
         self.controller.devices.emit(self.vDev.deviceId + ':InHomeFeedbackModule_' + self.vDev.get("metrics:roomId") + '_stopped_normal');
     };
 
     function cancelTrans(event, from, to) {
-        self.controller.addNotification("info", "In Home Feedback Module canceled feedback mechanism by user.", "module", "InHomeFeedbackModule");
+        if(self.debug) {
+            self.controller.addNotification("info", "In Home Feedback Module canceled feedback mechanism by user.", "module", "InHomeFeedbackModule");
+        }
 
         // emit event: [deviceId]:feedback_module_[roomId]_canceled_by_user
         self.controller.devices.emit(self.vDev.deviceId + ':InHomeFeedbackModule_' + self.vDev.get("metrics:roomId") + '_canceled_by_user');

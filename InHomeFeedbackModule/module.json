@@ -15,103 +15,81 @@
 	"schema" : {
 		"type" : "object",
 		"properties" : {
-			"room": {
-				"type": "integer",
-				"required": true
+			"commonOptions": {
+				"type": "object",
+				"properties": {
+					"room": {
+						"type": "integer",
+						"required": true
+					}
+				}
 			},
-			"cancelSwitch": {
-				"field": "enum",
-				"datasource": "namespaces",
-				"enum": "namespaces:devices_switchBinary:deviceId"
-			},
-			"deferSwitches": {
-				"type": "array",
-				"items": {
-					"type": "object",
-					"properties": {
-						"deferSwitch": {
+			"feedbackMechanism": {
+				"type": "object",
+				"properties": {
+					"visualActuators": {
+						"type": "array",
+						"items": {
 							"field": "enum",
 							"datasource": "namespaces",
-							"enum": "namespaces:devices_switchBinary:deviceId",
-							"required": true
-						},
-						"deferSwitchDuration": {
-							"type": "integer",
+							"enum": "namespaces:devices_switchBinary:deviceId,namespaces:devices_switchMultilevel:deviceId",
 							"required": true
 						}
 					}
 				}
 			},
-			"duration": {
-				"type": "integer",
-				"required": true
-			},
-			"deferment": {
-				"type": "integer",
-				"required": true
-			},
-			"visualActuators": {
-				"type": "array",
-				"items": {
-					"field": "enum",
-					"datasource": "namespaces",
-					"enum": "namespaces:devices_switchBinary:deviceId,namespaces:devices_switchMultilevel:deviceId",
-					"required": true
+			"cancelMechanism": {
+				"type": "object",
+				"properties": {
+					"cancelSwitch": {
+						"field": "enum",
+						"datasource": "namespaces",
+						"enum": "namespaces:devices_switchBinary:deviceId"
+					}
 				}
 			}
-		},
-		"required": false
+		}
 	},
 	"options": {
 		"fields": {
-			"room": {
-				"label": "__l_room_id__",
-				"type": "integer",
-				"helper": "__l_room_help__"
-			},
-			"cancelSwitch": {
-				"label": "__l_cancel_switch__",
-				"type": "select",
-				"datasource": "namespaces",
-				"field": "optionLabels",
-				"optionLabels": "namespaces:devices_switchBinary:deviceName"
-			},
-			"deferSwitches": {
-				"label": "__l_defer_switches__",
+			"commonOptions": {
+				"label": "__l_common_options__",
 				"fields": {
-					"item": {
+					"room": {
+						"label": "__l_room_id__",
+						"type": "integer",
+						"helper": "__l_room_help__"
+					}
+				}
+			},
+			"feedbackMechanism": {
+				"label": "__l_feedback_mechanism__",
+				"helper": "__l_feedback_mechanism_help__",
+				"fields": {
+					"visualActuators": {
+						"label": "__l_visual_actuators__",
+						"helper": "__l_visual_actuators_help__",
 						"fields": {
-							"deferSwitch": {
-								"label": "__l_defer_switch__",
+							"item": {
+								"label": "__l_visual_actuators_label__",
 								"type": "select",
 								"datasource": "namespaces",
 								"field": "optionLabels",
-								"optionLabels": "namespaces:devices_switchBinary:deviceName"
-							},
-							"deferSwitchDuration": {
-								"label": "__l_defer_switch_duration__",
-								"type": "integer"
+								"optionLabels": "namespaces:devices_switchBinary:deviceName,namespaces:devices_switchMultilevel:deviceName"
 							}
 						}
 					}
 				}
 			},
-			"duration": {
-				"label": "__l_duration__",
-				"type": "integer"
-			},
-			"deferment": {
-				"label": "__l_deferment__",
-				"type": "integer"
-			},
-			"visualActuators": {
-				"label": "__l_visual_actuators__",
+			"cancelMechanism": {
+				"label": "__l_cancel_mechanism__",
 				"fields": {
-					"item": {
+					"cancelSwitch": {
+						"label": "__l_cancel_switch__",
 						"type": "select",
 						"datasource": "namespaces",
 						"field": "optionLabels",
-						"optionLabels": "namespaces:devices_switchBinary:deviceName,namespaces:devices_switchMultilevel:deviceName"
+						"optionLabels": "namespaces:devices_switchBinary:deviceName"
 					}
 				}
 			}
