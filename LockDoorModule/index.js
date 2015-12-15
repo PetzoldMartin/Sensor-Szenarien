@@ -71,7 +71,7 @@ LockDoorModule.prototype.init = function (config) {
             } else if (switchVDev.get("metrics:level") == "on") {
                 // standby mode should be started
                 vDev.set("metrics:level", "time to enter standby");
-				self.controller.devices.emit("LockDoorModule_locked");
+				// self.controller.devices.emit("LockDoorModule_locked");
                 self.peoplePresent = false;
 
                 // check all PersonCounter
@@ -104,7 +104,7 @@ LockDoorModule.prototype.checkPersonCountersAndStartTurnOffTimer = function (vDe
     // if (vDev.id.indexOf("DummyDevice_35") != -1 ) {
         // var persons = vDev.get("metrics:level");
         var persons = vDev.performCommand('persons');
-        var currentRoomId = vDev.get('metrics:roomId');
+        var currentRoomId = vDev.get('metrics:room');
         if (persons > 0) {
             this.peoplePresent = true;
         } else {
@@ -117,6 +117,7 @@ LockDoorModule.prototype.checkPersonCountersAndStartTurnOffTimer = function (vDe
         for (var i = 0; i < this.roomWithTurnOffTimer.length; i++) {
             var rommId = this.roomWithTurnOffTimer[i];
             // self.controller.devices.on();
+            // TODO
         }
     }
 };
