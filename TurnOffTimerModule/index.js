@@ -133,7 +133,7 @@ TurnOffTimerModule.prototype.findFeedbackModule = function (roomId) {
     self.controller.instances.forEach(function(instance) {
 
         if(instance.moduleId == 'InHomeFeedbackModule') {
-            if(instance.params.room == roomId) {
+            if(instance.params.commonOptions.room == roomId) {
                 deviceId = instance.id;
             }
         }
