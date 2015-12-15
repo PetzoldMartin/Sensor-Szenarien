@@ -44,7 +44,7 @@
 					"cancelSwitch": {
 						"field": "enum",
 						"datasource": "namespaces",
-						"enum": "namespaces:devices_switchBinary:deviceId"
+						"enum": "namespaces:devices_switchBinary:deviceId,namespaces:devices_buttonControl:deviceId"
 					}
 				}
 			},
@@ -123,7 +123,7 @@
 						"type": "select",
 						"datasource": "namespaces",
 						"field": "optionLabels",
-						"optionLabels": "namespaces:devices_switchBinary:deviceName"
+						"optionLabels": "namespaces:devices_switchBinary:deviceName,namespaces:devices_buttonControl:deviceName"
 					}
 				}
 			},
