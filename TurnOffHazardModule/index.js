@@ -61,8 +61,8 @@ TurnOffHazardModule.prototype.init = function (config) {
                     vDev.set('metrics:turnOffTimerState', 'active');
 
                     var turnOffTimerDuration = 60; // default
-                    if(self.config.turnOffTimerDuration) {
-                        var turnOffTimerDuration = self.config.turnOffTimerDuration;
+                    if(self.config.commonOptions.turnOffTimerDuration) {
+                        var turnOffTimerDuration = self.config.commonOptions.turnOffTimerDuration;
                     }
 
                     // start turn off timer
@@ -74,15 +74,15 @@ TurnOffHazardModule.prototype.init = function (config) {
                     }
 
                     // if turn off timer expired
-                    self.controller.devices.on(vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.room + "_expired", function() {
-                        self.controller.devices.off(self.vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.room + "_expired", function() {});
+                    self.controller.devices.on(vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.commonOptions.room + "_expired", function() {
+                        self.controller.devices.off(self.vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.commonOptions.room + "_expired", function() {});
                         self.turnOffAllHazards();
                         vDev.set('metrics:turnOffTimerState', 'pause');
                     });
 
                     // if turn off timer canceled
-                    self.controller.devices.on(vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.room + "_canceled", function() {
-                        self.controller.devices.off(self.vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.room + "_canceled", function() {});
+                    self.controller.devices.on(vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.commonOptions.room + "_canceled", function() {
+                        self.controller.devices.off(self.vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.commonOptions.room + "_canceled", function() {});
                         // don't turn off any hazards
                         self.addHistoryEntry('A shutdown of hazards has been canceled by a user.');
                         vDev.set('metrics:turnOffTimerState', 'pause');
@@ -90,8 +90,8 @@ TurnOffHazardModule.prototype.init = function (config) {
 
                     // unsubscribe event's after the double time of timer duration (in the case that the turn off timer module does not work properly)
                     self.unsubscribeEvents = setTimeout(function() {
-                        self.controller.devices.off(self.vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.room + "_expired", function() {});
-                        self.controller.devices.off(self.vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.room + "_canceled", function() {});
+                        self.controller.devices.off(self.vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.commonOptions.room + "_expired", function() {});
+                        self.controller.devices.off(self.vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.commonOptions.room + "_canceled", function() {});
                         vDev.set('metrics:turnOffTimerState', 'pause');
                     }, turnOffTimerDuration * 2 * 1000);
 
@@ -142,6 +142,17 @@ TurnOffHazardModule.prototype.init = function (config) {
                     'message': 'OK',
                     'history': storedHistory
                 }
+            } else if (command === "reset") {
+                vDev.set('metrics:personCount', 0);
+                vDev.set('metrics:adultCount', 0);
+                vDev.set('metrics:childCount', 0);
+                vDev.set('metrics:turnOffTimerState', 'pause');
+
+                // send a response: all OK ...
+                return {
+                    'code': 1,
+                    'message': 'All metric values (not the turn off timer id) was reset and all running hazard off mechanisms was canceled.'
+                }
             } else {
                 return {
                     'code': 2,
@@ -162,7 +173,7 @@ TurnOffHazardModule.prototype.init = function (config) {
     self.controller.on("core.start", function() {
         // Setup TurnOffTimerModule
         if (vDev.get('metrics:turnOffTimerModuleId') == -1) {
-            var turnOffTimerModuleId = self.createTurnOffTimerModuleIfNotExist(self.config.room);
+            var turnOffTimerModuleId = self.createTurnOffTimerModuleIfNotExist(self.config.commonOptions.room);
             vDev.set('metrics:turnOffTimerModuleId', turnOffTimerModuleId);
         } else {
             var turnOffTimerModule = self.controller.devices.get(vDev.get('metrics:turnOffTimerModuleId'));
@@ -173,7 +184,7 @@ TurnOffHazardModule.prototype.init = function (config) {
         }
 
         // Subscribe PersonCounterModule events (PersonCounterModule of this room)
-        self.personCounterDeviceId = self.getPersonCounterDeviceId(self.config.room);
+        self.personCounterDeviceId = self.getPersonCounterDeviceId(self.config.commonOptions.room);
         if (self.personCounterDeviceId) {
             self.controller.devices.on(self.personCounterDeviceId, "change:metrics:level", function() {
                 var personCounterVDev = self.controller.devices.get(self.personCounterDeviceId);
@@ -195,9 +206,9 @@ TurnOffHazardModule.prototype.init = function (config) {
         }
 
         // // Subscribe PersonIdentificationModule events (PersonIdentificationModule of this room)
-        self.personIdentificationDeviceId = self.getPersonIdentificationDeviceId(self.config.room);
+        self.personIdentificationDeviceId = self.getPersonIdentificationDeviceId(self.config.commonOptions.room);
         if (self.personIdentificationDeviceId) {
-            self.controller.devices.on(self.personIdentificationDeviceId, 'PersonIdentificationModule_' + self.config.room + '_no_adult_there', function() {
+            self.controller.devices.on(self.personIdentificationDeviceId, 'PersonIdentificationModule_' + self.config.commonOptions.room + '_no_adult_there', function() {
                 // no adult in room
                 self.vDev.performCommand("hazardOff");
 
@@ -214,7 +225,7 @@ TurnOffHazardModule.prototype.init = function (config) {
                     vDev.set('metrics:childCount', personCount - adultCount);
                 }
             });
-            self.controller.devices.on(self.personIdentificationDeviceId, 'PersonIdentificationModule_' + self.config.room + '_adult_there', function() {
+            self.controller.devices.on(self.personIdentificationDeviceId, 'PersonIdentificationModule_' + self.config.commonOptions.room + '_adult_there', function() {
                 // at least one adult in room
                 self.vDev.performCommand("hazardOn");
 
@@ -241,16 +252,16 @@ TurnOffHazardModule.prototype.stop = function () {
     var self = this;
 
     // unsubscribe turn off timer events
-    self.controller.devices.off(self.vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.room + "_expired", function() {});
-    self.controller.devices.off(self.vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.room + "_canceled", function() {});
+    self.controller.devices.off(self.vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.commonOptions.room + "_expired", function() {});
+    self.controller.devices.off(self.vDev.get('metrics:turnOffTimerModuleId'), 'TurnOffTimerModule_' + self.config.commonOptions.room + "_canceled", function() {});
     // unsubscribe person counter events
     if(self.personCounterDeviceId) {
         self.controller.devices.off(self.personCounterDeviceId, "change:metrics:level", function() {});
     }
     // unsubscribe person identification events
     if(self.personIdentificationDeviceId) {
-        self.controller.devices.off(self.personIdentificationDeviceId, 'PersonIdentificationModule_' + self.config.room + '_no_adult_there', function() {});
-        self.controller.devices.off(self.personIdentificationDeviceId, 'PersonIdentificationModule_' + self.config.room + '_adult_there', function() {});
+        self.controller.devices.off(self.personIdentificationDeviceId, 'PersonIdentificationModule_' + self.config.commonOptions.room + '_no_adult_there', function() {});
+        self.controller.devices.off(self.personIdentificationDeviceId, 'PersonIdentificationModule_' + self.config.commonOptions.room + '_adult_there', function() {});
     }
 
     if (self.unsubscribeEvents) {
@@ -267,7 +278,7 @@ TurnOffHazardModule.prototype.stop = function () {
 TurnOffHazardModule.prototype.turnOffAllHazards = function () {
     var self = this;
 
-    self.config.hazards.forEach(function(el) {
+    self.config.hazardContainer.hazards.forEach(function(el) {
         var vDev = self.controller.devices.get(el);
 
         if (vDev) {
@@ -288,7 +299,7 @@ TurnOffHazardModule.prototype.turnOffAllHazards = function () {
 TurnOffHazardModule.prototype.turnOnAllHazards = function () {
     var self = this;
 
-    self.config.hazards.forEach(function(el) {
+    self.config.hazardContainer.hazards.forEach(function(el) {
         var vDev = self.controller.devices.get(el);
 
         if (vDev) {

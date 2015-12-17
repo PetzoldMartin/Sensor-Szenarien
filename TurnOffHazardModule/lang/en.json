@@ -5,5 +5,8 @@
 	"l_room_help":"You can find the room id in the Settings <span class='glyphicon glyphicon-arrow-right'></span> Rooms <span class='glyphicon glyphicon-arrow-right'></span> Edit the specific room <span class='glyphicon glyphicon-arrow-right'></span> last character in the URL",
 	"l_hazards":"Add some hazards",
 	"l_turn_off_timer_duration":"Set a duration for the turn off timer (sec)",
-	"l_turn_off_timer_duration_help":"In this period the user is given the opportunity to cancel the action."
+	"l_turn_off_timer_duration_help":"In this period the user is given the opportunity to cancel the action.",
+	"l_common_options":"Common options",
+	"l_hazardContainer":"Hazards",
+	"l_hazards_label":"Select a binary or multilevel switch device"
 }
