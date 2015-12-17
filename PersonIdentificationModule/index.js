@@ -468,9 +468,10 @@ PersonIdentificationModule.prototype.makeStatement = function (bool, self) {
         self.adultFound = false;
         self.vDev.set("metrics:level", "off");
         self.vDev.set("metrics:status", false);
-        self.controller.devices.emit(self.eventID + '_no_adult_there');
         self.vDev.set("metrics:adultCount", self.adultCount);
         self.vDev.set("metrics:personCount", self.personCount);
+        self.controller.devices.emit(self.eventID + '_no_adult_there');
+        
     }
     self.measuredata = self.initMeasureData(self.measuredata);
     self.controller.addNotification("info", "PersonIdentificationModule make Statement: " + self.vDev.get("metrics:level"), "module", "PersonIdentificationModule");
