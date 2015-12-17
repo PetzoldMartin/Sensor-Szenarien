@@ -64,13 +64,13 @@ StandbyModule.prototype.init = function (config) {
         // set configured devices in defined standby state
 		var room = vDev.get("metrics:room");
 		
-		self.config.switches.forEach(function(devState) {
+		self.config.switchesStartStandby.forEach(function(devState) {
                 var vDev = self.controller.devices.get(devState.device);
                 if (vDev) {
                     vDev.performCommand(devState.status);
                 }
             });
-		self.config.dimmers.forEach(function(devState) {
+		self.config.dimmersStartStandby.forEach(function(devState) {
                 var vDev = self.controller.devices.get(devState.device);
                 if (vDev) {
                     vDev.performCommand("exact", { level: devState.status });
@@ -84,23 +84,23 @@ StandbyModule.prototype.init = function (config) {
 
     self.controller.devices.on('LockDoorModule_unlocked', function() {
 		var room = vDev.get("metrics:room");
-		
-		self.config.switches.forEach(function(devState) {
+		vDev.set("metrics:level", "finished standby");
+		self.config.switchesFinishedStandby.forEach(function(devState) {
                 var vDev = self.controller.devices.get(devState.device);
                 if (vDev) {
-                    vDev.performCommand("on");
+                    vDev.performCommand(devState.status);
                 }
             });
-		self.config.dimmers.forEach(function(devState) {
+		self.config.dimmersFinishedStandby.forEach(function(devState) {
                 var vDev = self.controller.devices.get(devState.device);
                 if (vDev) {
-                    vDev.performCommand("exact", { level: 99 });
+                    vDev.performCommand("exact", { level: devState.status });
                 }
             });
 	
-		vDev.set("metrics:level", "finished standby");
+		
 		self.controller.devices.emit(vDev.deviceId + ':StandbyModule_' + room + '_stopped');
-		self.controller.addNotification("info", "Standby stopped, devices turned on", "module", "StandbyModule");
+		self.controller.addNotification("info", "Standby stopped, devices were set to state", "module", "StandbyModule");
     });
 };
 

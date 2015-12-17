@@ -15,12 +15,7 @@
 	"schema" : {
 	    "type" : "object",
 	    "properties" : {
-			"standby": {
-	            "field": "enum",
-	            "datasource": "namespaces",
-	            "enum": "namespaces:devices_buttonControl:deviceId"
-	        },
-			"switches": {
+			"switchesStartStandby": {
 				"type": "array",
 				"items": {
 					"type": "object",
@@ -39,7 +34,46 @@
 					}
 				}
 			},
-			"dimmers": {
+			"dimmersStartStandby": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"device": {
+							"field": "enum",
+							"datasource": "namespaces",
+							"enum": "namespaces:devices_switchMultilevel:deviceId",
+							"required": true
+						},
+						"status": {
+							"type": "integer",
+							"minimum": 0,
+							"maximum": 99,
+							"required": true
+						}
+					}
+				}
+			},
+			"switchesFinishedStandby": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"device": {
+							"field": "enum",
+							"datasource": "namespaces",
+							"enum": "namespaces:devices_switchBinary:deviceId",
+							"required": true
+						},
+						"status": {
+							"type": "integer",
+							"required": true,
+							"enum": ["off", "on"]
+						}
+					}
+				}
+			},
+			"dimmersFinishedStandby": {
 				"type": "array",
 				"items": {
 					"type": "object",
@@ -68,16 +102,8 @@
 	},
 	"options": {
 	    "fields": {
-			"standby": {
-	            "label": "__standby__",
-	            "type": "select",
-	            "datasource": "namespaces",
-	            "field": "optionLabels",
-	            "optionLabels": "namespaces:devices_buttonControl:deviceName",
-	            "helper": "__standby_help__"
-	        },
-			"switches": {
-				"label": "__l_switches__",
+			"switchesStartStandby": {
+				"label": "__l_switches_goOn_Standby__",
 				"fields": {
 					"item": {
 						"fields": {
@@ -96,8 +122,48 @@
 					}
 				}
 			},
-			"dimmers": {
-				"label": "__l_dimmers__",
+			"dimmersStartStandby": {
+				"label": "__l_dimmers_goOn_Standby__",
+				"fields": {
+					"item": {
+						"fields": {
+							"device": {
+								"label": "",
+								"type": "select",
+								"datasource": "namespaces",
+								"field": "optionLabels",
+								"optionLabels": "namespaces:devices_switchMultilevel:deviceName"
+							},
+							"status": {
+								"label": "__l_level__"
+							
+							}
+						}
+					}
+				}
+			},
+			"switchesFinishedStandby": {
+				"label": "__l_switches_goOff_Standby__",
+				"fields": {
+					"item": {
+						"fields": {
+							"device": {
+								"label": "",
+								"type": "select",
+								"datasource": "namespaces",
+								"field": "optionLabels",
+								"optionLabels": "namespaces:devices_switchBinary:deviceName"
+							},
+							"status": {
+								"label": "",
+								"optionLabels": ["__off__", "__on__"]
+							}
+						}
+					}
+				}
+			},
+			"dimmersFinishedStandby": {
+				"label": "__l_switches_goOff_Standby__",
 				"fields": {
 					"item": {
 						"fields": {
