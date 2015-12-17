@@ -15,6 +15,15 @@
 	"schema" : {
 	    "type" : "object",
 	    "properties" : {
+			"commonOptions": {
+				"type": "object",
+				"properties": {
+					"room": {
+						"type": "integer",
+						"required": true
+					}
+				}
+			},
 			"switchesStartStandby": {
 				"type": "array",
 				"items": {
@@ -92,23 +101,30 @@
 						}
 					}
 				}
-			},
-			"room": {
-				"type": "integer",
-				"required": true
 			}
 	    },
 	    "required": true
 	},
 	"options": {
 	    "fields": {
-			"switchesStartStandby": {
-				"label": "__l_switches_goOn_Standby__",
+			"commonOptions": {
+				"label": "__l_common_options__",
 				"fields": {
-					"item": {
+					"room": {
+						"label": "__l_room_id__",
+						"type": "integer",
+						"helper": "__l_room_help__"
+					}
+				}
+			},
+			"switchesStartStandby": {
+			"label": "__l_standby_mechanism_on__",
+			"helper": "__l_standby_mechanism_help_on__",
+			"fields": {
+				"item": {
 						"fields": {
 							"device": {
-								"label": "",
+								"label": "__l_visual_actuators_label_binary__",
 								"type": "select",
 								"datasource": "namespaces",
 								"field": "optionLabels",
@@ -121,14 +137,14 @@
 						}
 					}
 				}
+				
 			},
 			"dimmersStartStandby": {
-				"label": "__l_dimmers_goOn_Standby__",
-				"fields": {
+			"fields": {
 					"item": {
 						"fields": {
 							"device": {
-								"label": "",
+								"label": "__l_visual_actuators_label_multi__",
 								"type": "select",
 								"datasource": "namespaces",
 								"field": "optionLabels",
@@ -143,12 +159,13 @@
 				}
 			},
 			"switchesFinishedStandby": {
-				"label": "__l_switches_goOff_Standby__",
+			"label": "__l_standby_mechanism_off__",
+			"helper": "__l_standby_mechanism_help_off__",
 				"fields": {
 					"item": {
 						"fields": {
 							"device": {
-								"label": "",
+								"label": "__l_visual_actuators_label_binary__",
 								"type": "select",
 								"datasource": "namespaces",
 								"field": "optionLabels",
@@ -163,12 +180,11 @@
 				}
 			},
 			"dimmersFinishedStandby": {
-				"label": "__l_switches_goOff_Standby__",
 				"fields": {
 					"item": {
 						"fields": {
 							"device": {
-								"label": "",
+								"label":"__l_visual_actuators_label_multi__",
 								"type": "select",
 								"datasource": "namespaces",
 								"field": "optionLabels",
@@ -181,11 +197,6 @@
 						}
 					}
 				}
-			},
-			"room": {
-				"label": "__l_room_id__",
-				"type": "integer",
-				"helper": "__l_room_help__"
 			}
 	    }
 	}

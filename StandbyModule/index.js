@@ -84,7 +84,7 @@ StandbyModule.prototype.init = function (config) {
 
     self.controller.devices.on('LockDoorModule_unlocked', function() {
 		var room = vDev.get("metrics:room");
-		vDev.set("metrics:level", "finished standby");
+		
 		self.config.switchesFinishedStandby.forEach(function(devState) {
                 var vDev = self.controller.devices.get(devState.device);
                 if (vDev) {
@@ -98,7 +98,7 @@ StandbyModule.prototype.init = function (config) {
                 }
             });
 	
-		
+		vDev.set("metrics:level", "finished standby");
 		self.controller.devices.emit(vDev.deviceId + ':StandbyModule_' + room + '_stopped');
 		self.controller.addNotification("info", "Standby stopped, devices were set to state", "module", "StandbyModule");
     });
