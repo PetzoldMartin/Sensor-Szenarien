@@ -13,7 +13,7 @@ PersonIdentificationModule.prototype.init = function (config) {
     this.personCount = 0;
     this.adultCount = 0;
     this.ppmValue = 40000;
-    this.waitingMinutes = 0.5;
+    this.waitingMinutes = 2;
     this.roomVolume = 100000;
     this.correctionFaktor = 1;
     this.highGetData = {
@@ -119,7 +119,7 @@ PersonIdentificationModule.prototype.init = function (config) {
         vDev.set("metrics:room", self.config.room);
     }
     ;
-    if (vDev.get("metrics:correctionFactor") === 0) {
+    if (vDev.get("metrics:correctionFactor") === 1) {
         vDev.set("metrics:correctionFactor", self.config.correctionFactor);
     }
     ;
@@ -130,7 +130,7 @@ PersonIdentificationModule.prototype.init = function (config) {
         self.personas.push(self.makePersonaByKind(each, self.ppmValue));
     });
 
-    self.roomVolume = self.config.roomHigh * self.config.roomWidth * self.config.roomLength * 1000;
+    self.roomVolume = (self.config.roomHigh * self.config.roomWidth * self.config.roomLength) / 1000;
     self.correctionFaktor = vDev.get("metrics:correctionFactor");
 
 
