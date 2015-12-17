@@ -15,12 +15,16 @@
 	"schema" : {
 	    "type" : "object",
 	    "properties" : {
-			"standby": {
-	            "field": "enum",
-	            "datasource": "namespaces",
-	            "enum": "namespaces:devices_buttonControl:deviceId"
-	        },
-			"switches": {
+			"commonOptions": {
+				"type": "object",
+				"properties": {
+					"room": {
+						"type": "integer",
+						"required": true
+					}
+				}
+			},
+			"switchesStartStandby": {
 				"type": "array",
 				"items": {
 					"type": "object",
@@ -39,7 +43,7 @@
 					}
 				}
 			},
-			"dimmers": {
+			"dimmersStartStandby": {
 				"type": "array",
 				"items": {
 					"type": "object",
@@ -59,30 +63,68 @@
 					}
 				}
 			},
-			"room": {
-				"type": "integer",
-				"required": true
+			"switchesFinishedStandby": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"device": {
+							"field": "enum",
+							"datasource": "namespaces",
+							"enum": "namespaces:devices_switchBinary:deviceId",
+							"required": true
+						},
+						"status": {
+							"type": "integer",
+							"required": true,
+							"enum": ["off", "on"]
+						}
+					}
+				}
+			},
+			"dimmersFinishedStandby": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"device": {
+							"field": "enum",
+							"datasource": "namespaces",
+							"enum": "namespaces:devices_switchMultilevel:deviceId",
+							"required": true
+						},
+						"status": {
+							"type": "integer",
+							"minimum": 0,
+							"maximum": 99,
+							"required": true
+						}
+					}
+				}
 			}
 	    },
 	    "required": true
 	},
 	"options": {
 	    "fields": {
-			"standby": {
-	            "label": "__standby__",
-	            "type": "select",
-	            "datasource": "namespaces",
-	            "field": "optionLabels",
-	            "optionLabels": "namespaces:devices_buttonControl:deviceName",
-	            "helper": "__standby_help__"
-	        },
-			"switches": {
-				"label": "__l_switches__",
+			"commonOptions": {
+				"label": "__l_common_options__",
 				"fields": {
-					"item": {
+					"room": {
+						"label": "__l_room_id__",
+						"type": "integer",
+						"helper": "__l_room_help__"
+					}
+				}
+			},
+			"switchesStartStandby": {
+			"label": "__l_standby_mechanism_on__",
+			"helper": "__l_standby_mechanism_help_on__",
+			"fields": {
+				"item": {
 						"fields": {
 							"device": {
-								"label": "",
+								"label": "__l_visual_actuators_label_binary__",
 								"type": "select",
 								"datasource": "namespaces",
 								"field": "optionLabels",
@@ -95,14 +137,14 @@
 						}
 					}
 				}
+				
 			},
-			"dimmers": {
-				"label": "__l_dimmers__",
-				"fields": {
+			"dimmersStartStandby": {
+			"fields": {
 					"item": {
 						"fields": {
 							"device": {
-								"label": "",
+								"label": "__l_visual_actuators_label_multi__",
 								"type": "select",
 								"datasource": "namespaces",
 								"field": "optionLabels",
@@ -116,10 +158,45 @@
 					}
 				}
 			},
-			"room": {
-				"label": "__l_room_id__",
-				"type": "integer",
-				"helper": "__l_room_help__"
+			"switchesFinishedStandby": {
+			"label": "__l_standby_mechanism_off__",
+			"helper": "__l_standby_mechanism_help_off__",
+				"fields": {
+					"item": {
+						"fields": {
+							"device": {
+								"label": "__l_visual_actuators_label_binary__",
+								"type": "select",
+								"datasource": "namespaces",
+								"field": "optionLabels",
+								"optionLabels": "namespaces:devices_switchBinary:deviceName"
+							},
+							"status": {
+								"label": "",
+								"optionLabels": ["__off__", "__on__"]
+							}
+						}
+					}
+				}
+			},
+			"dimmersFinishedStandby": {
+				"fields": {
+					"item": {
+						"fields": {
+							"device": {
+								"label":"__l_visual_actuators_label_multi__",
+								"type": "select",
+								"datasource": "namespaces",
+								"field": "optionLabels",
+								"optionLabels": "namespaces:devices_switchMultilevel:deviceName"
+							},
+							"status": {
+								"label": "__l_level__"
+							
+							}
+						}
+					}
+				}
 			}
 	    }
 	}

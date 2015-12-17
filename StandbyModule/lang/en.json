@@ -1,13 +1,16 @@
 {
 	"m_title":"Standby Module",
-	"m_descr":"This module gets events from DoorLockModule and turns  configured devices in specified states.",
+	"m_descr":"This module gets events from DoorLockModule and turns configured devices in specified states.",
 	"on":"On",
 	"off":"Off",
-	"standby":"Standby",
-	"standby_help":"This specifies the flats standby status.",
+	"l_visual_actuators_label_binary":"Select a binary switch device",
+	"l_visual_actuators_label_multi":"Select a multilevel switch device",
+	"l_standby_mechanism_on":"Start Standby mechanism",
+	"l_standby_mechanism_help_on":"Below devices can be chosen, and set to the defined state when standby mode is on (Binary switch: on|off, Multilevel switch: 0|99).", 
 	"l_room_id":"Enter a room id",
 	"l_room_help":"You can find the room id in the Settings <span class='glyphicon glyphicon-arrow-right'></span> Rooms <span class='glyphicon glyphicon-arrow-right'></span> Edit the specific room <span class='glyphicon glyphicon-arrow-right'></span> last character in the URL",
-	"l_switches":"List of switches",
-	"l_dimmers":"List of dimmers",
+	"l_common_options":"Common options",
+	"l_standby_mechanism_off":"Finish Standby mechanism",
+	"l_standby_mechanism_help_off":"Below devices can be chosen, and set to the defined state when standby mode is off (Binary switch: on|off, Multilevel switch: 0|99).", 
 	"l_level":"Level"
 }

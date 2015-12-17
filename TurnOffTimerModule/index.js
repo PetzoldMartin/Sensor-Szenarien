@@ -50,17 +50,6 @@ TurnOffTimerModule.prototype.init = function (config) {
 			}
         },
 		handler: function (command, args) {
-			var room 				 = vDev.get("metrics:roomId");
-			var feedbackModuleVDevId = "InHomeFeedbackModule_" + self.findFeedbackModule(room);
-			var feedbackModuleVDev   =  self.controller.devices.get(feedbackModuleVDevId);
-
-			var eventName = "InHomeFeedbackModule_" + room + "_canceled_by_user";
-
-            // self.controller.devices.on(feedbackModuleVDev, eventName, function() {
-            // function on(p1, p2, p3) need the device id as the first parameter and not the vdev object!
-			self.controller.devices.on(feedbackModuleVDevId, eventName, function() {
-				vDev.set("metrics:cancel", "1");
-            });
 			
 			if(feedbackModuleVDev == null) {
 				vDev.set("metrics:level", "In Home Feedback Module is required");
@@ -103,7 +92,17 @@ TurnOffTimerModule.prototype.init = function (config) {
 		},
         moduleId: this.id
     });
-    // save vDev object
+	
+	var room 				 = vDev.get("metrics:roomId");
+	var feedbackModuleVDevId = "InHomeFeedbackModule_" + self.findFeedbackModule(room);
+	var feedbackModuleVDev   =  self.controller.devices.get(feedbackModuleVDevId);
+	
+	var eventName 			 = "InHomeFeedbackModule_" + room + "_canceled_by_user";
+	
+    self.controller.devices.on(feedbackModuleVDevId, eventName, function() {
+		vDev.set("metrics:cancel", "1");
+    });
+	
     self.vDev = vDev;
 
 	vDev.set("metrics:level", "Timer is ready");
@@ -112,10 +111,13 @@ TurnOffTimerModule.prototype.init = function (config) {
 };
 
 TurnOffTimerModule.prototype.stop = function () {
+	
+	self = this;
+	
     // event unsubscription
     var room 				 = self.vDev.get("metrics:roomId");
     var feedbackModuleVDevId = "InHomeFeedbackModule_" + self.findFeedbackModule(room);
-    var eventName = "InHomeFeedbackModule_" + room + "_canceled_by_user";
+    var eventName 			 = "InHomeFeedbackModule_" + room + "_canceled_by_user";
 
     self.controller.devices.off(feedbackModuleVDevId, eventName, function() {});
 
