@@ -59,12 +59,14 @@ TurnOffTimerModule.prototype.init = function (config) {
             // self.controller.devices.on(feedbackModuleVDev, eventName, function() {
             // function on(p1, p2, p3) need the device id as the first parameter and not the vdev object!
 			self.controller.devices.on(feedbackModuleVDevId, eventName, function() {
-				//kommende Zeile Code nur testhalber
-				self.controller.addNotification("info", "Test, ob der Code erreicht wird", "module", "TurnOffTimerModule");
 				vDev.set("metrics:cancel", "1");
             });
+			
+			if(feedbackModuleVDev == null) {
+				vDev.set("metrics:level", "In Home Feedback Module is required");
+			}
 
-            if(command === "start_timer") {
+            if(command === "start_timer" && feedbackModuleVDev != null) {
                 if(args.time) {
 					var counter = 0;
 					vDev.set("metrics:cancel", "0");
