@@ -107,21 +107,24 @@ TurnOffHazardModule.prototype.init = function (config) {
                         'message': 'The mechanism for harzard off command can be started only once.'
                     }
                 }
-			} else if (command === "status") {
+			} else if (command === "state") {
                 var storedHistory = loadObject(self.vDev.id);
 
                 return {
                     'code': 1,
                     'message': 'OK',
-                    'status': {
-                        'title': 'Turn Off Hazard Module ' + this.id,
-                        'turnOffTimerModuleId': vDev.get('metrics:turnOffTimerModuleId'),
-                        'personCount': vDev.get('metrics:personCount'),
-                        'adultCount': vDev.get('metrics:adultCount'),
-                        'childCount': vDev.get('metrics:childCount'),
-                        'turnOffTimerState': vDev.get('metrics:turnOffTimerState'),
+                    'state': {
+                        'metrics': vDev.get('metrics'),
                         'history': storedHistory
                     }
+                }
+            } else if (command === "history") {
+                var storedHistory = loadObject(self.vDev.id);
+
+                return {
+                    'code': 1,
+                    'message': 'OK',
+                    'history': storedHistory
                 }
             } else {
                 return {

@@ -135,7 +135,7 @@ InHomeFeedbackModule.prototype.init = function (config) {
         moduleId: this.id
     });
 
-    vDev.set("metrics:level", "Initialized");
+    vDev.set("metrics:level", "Pause");
 
     self.vDev = vDev;
 
@@ -267,7 +267,7 @@ InHomeFeedbackModule.prototype.startFeedbackModuleTimer = function (duration) {
     var self = this;
 
     if(self.endless) {
-        self.vDev.set("metrics:level", "Aktiv");
+        self.vDev.set("metrics:level", "Active");
     } else {
         var remainingTime = duration
 
