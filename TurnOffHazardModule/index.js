@@ -107,6 +107,22 @@ TurnOffHazardModule.prototype.init = function (config) {
                         'message': 'The mechanism for harzard off command can be started only once.'
                     }
                 }
+            } else if (command === "hazardOn") {
+                if(vDev.get('metrics:turnOffTimerState') === 'pause') {
+                    self.turnOnAllHazards();
+
+                    // send a response: all OK ...
+                    return {
+                        'code': 1,
+                        'message': 'The mechanism for harzard on command was performed normally.'
+                    }
+                } else {
+                    // send a response
+                    return {
+                        'code': 2,
+                        'message': 'Currently, a hazard off mechanism runs. Please try again later.'
+                    }
+                }
 			} else if (command === "state") {
                 var storedHistory = loadObject(self.vDev.id);
 
@@ -200,7 +216,7 @@ TurnOffHazardModule.prototype.init = function (config) {
             });
             self.controller.devices.on(self.personIdentificationDeviceId, 'PersonIdentificationModule_' + self.config.room + '_adult_there', function() {
                 // at least one adult in room
-                // TODO - hazardOn?
+                self.vDev.performCommand("hazardOn");
 
                 // update own metric values
                 var personIdentificationVDev = self.controller.devices.get(self.personIdentificationDeviceId);
@@ -267,6 +283,27 @@ TurnOffHazardModule.prototype.turnOffAllHazards = function () {
 
     // add history data also if no hazard configured
     self.addHistoryEntry('A shutdown of hazards has been successfully performed.');
+}
+
+TurnOffHazardModule.prototype.turnOnAllHazards = function () {
+    var self = this;
+
+    self.config.hazards.forEach(function(el) {
+        var vDev = self.controller.devices.get(el);
+
+        if (vDev) {
+            var deviceType = vDev.get("deviceType");
+
+            if (deviceType === "switchBinary") {
+                vDev.performCommand("on");
+            } else if (deviceType === "switchMultilevel") {
+                vDev.performCommand("exact", { level: 99 });
+            }
+        }
+    });
+
+    // add history data also if no hazard configured
+    self.addHistoryEntry('An activation of hazards has been performed.');
 }
 
 TurnOffHazardModule.prototype.getPersonCounterDeviceId = function (roomId) {
