@@ -111,10 +111,13 @@ TurnOffTimerModule.prototype.init = function (config) {
 };
 
 TurnOffTimerModule.prototype.stop = function () {
+	
+	self = this;
+	
     // event unsubscription
     var room 				 = self.vDev.get("metrics:roomId");
     var feedbackModuleVDevId = "InHomeFeedbackModule_" + self.findFeedbackModule(room);
-    var eventName = "InHomeFeedbackModule_" + room + "_canceled_by_user";
+    var eventName 			 = "InHomeFeedbackModule_" + room + "_canceled_by_user";
 
     self.controller.devices.off(feedbackModuleVDevId, eventName, function() {});
 
