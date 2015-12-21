@@ -15,7 +15,8 @@ PersonIdentificationModule.prototype.init = function (config) {
     this.ppmValue = 40000;
     this.waitingMinutes = 2;
     this.roomVolume = 100000;
-    this.correctionFaktor = 1;
+    this.correctionFactor = 1;
+
     this.highGetData = {
         lastHighMeasurepoint: 0,
         lastPValue: 0,
@@ -61,7 +62,10 @@ PersonIdentificationModule.prototype.init = function (config) {
                         status: false,
                         personCount: 0,
                         adultCount: 0,
-                        alarmSwitchDeviceId: -1
+                        runningState: true,
+                        alarmSwitchDeviceId: -1,
+                        highmeasureWaitingtime: 1,
+                        debug: false,
                     }
                 },
                 overlay: {
@@ -71,12 +75,42 @@ PersonIdentificationModule.prototype.init = function (config) {
                     }
                 },
                 handler: function (command, args) {
-                    //TODO Switch maybee
                     switch (command) {
                         case "areThereAdults":
                             return{
                                 'code': 1,
                                 'there is a Adult': self.adultFound
+                            };
+                        case "start":
+                            vDev.set("metrics:runningState", true);
+                            self.controller.devices.emit(self.eventID + '_started');
+
+                            return{
+                                'code': 1,
+                                'debug State': vDev.get("metrics:runningState")
+                            };
+                        case "stop":
+                            vDev.set("metrics:runningState", false);
+                            self.controller.devices.emit(self.eventID + '_started');
+
+
+                            return{
+                                'code': 1,
+                                'debug State': vDev.get("metrics:runningState")
+                            };
+                        case "debugOff":
+                            vDev.set("metrics:debug", false);
+
+                            return{
+                                'code': 1,
+                                'debug State': vDev.get("metrics:debug")
+                            };
+                        case "debugOn":
+                            vDev.set("metrics:debug", true);
+
+                            return{
+                                'code': 1,
+                                'debug State': vDev.get("metrics:debug")
                             };
                         case "giveData":
                             return{
@@ -84,13 +118,43 @@ PersonIdentificationModule.prototype.init = function (config) {
                                 'personCount': self.personCount,
                                 'lastDeltaValue': self.measuredata.getLastmeasurement()
                             };
+                        case "setCorrectionFactor":
+                            if (args.correctionFactor) {
+                                self.correctionFactor = args.correctionFactor;
+                                vDev.set("metrics:correctionFactor", self.correctionFactor);
+                                return {
+                                    'code': 1,
+                                    'message': 'OK - the correctionFactor has been changed to ' + self.correctionFactor
+                                };
+                            } else {
+                                return {
+                                    'code': 2,
+                                    'message': 'OK - Error - missing parameter >correctionFactor<'
+                                };
+                            }
+                            ;
+                        case "setMeasureTimeDelta":
+                            if (args.highmeasureWaitingtime) {
+                                self.highmeasureWaitingtime = args.highmeasureWaitingtime;
+                                vDev.set("metrics:highmeasureWaitingtime", self.highmeasureWaitingtime);
+                                return {
+                                    'code': 1,
+                                    'message': 'OK - the highmeasureWaitingtime has been changed to ' + self.highmeasureWaitingtime
+                                };
+                            } else {
+                                return {
+                                    'code': 2,
+                                    'message': 'OK - Error - missing parameter >highmeasureWaitingtime<'
+                                };
+                            }
+                            ;
                         case "setPersons":
                             if (args.personCount) {
                                 self.personCount = args.personCount;
                                 vDev.set("metrics:personCount", self.personCount);
                                 return {
                                     'code': 1,
-                                    'message': 'OK - the message has been changed to ' + self.personCount
+                                    'message': 'OK - the personCount has been changed to ' + self.personCount
                                 };
                             } else {
                                 return {
@@ -119,6 +183,10 @@ PersonIdentificationModule.prototype.init = function (config) {
         vDev.set("metrics:room", self.config.room);
     }
     ;
+    if (vDev.get("metrics:highmeasureWaitingtime") === 1) {
+        vDev.set("metrics:highmeasureWaitingtime", self.config.highmeasureWaitingtime);
+    }
+    ;
     if (vDev.get("metrics:correctionFactor") === 1) {
         vDev.set("metrics:correctionFactor", self.config.correctionFactor);
     }
@@ -131,7 +199,7 @@ PersonIdentificationModule.prototype.init = function (config) {
     });
 
     self.roomVolume = (self.config.roomHigh * self.config.roomWidth * self.config.roomLength) / 1000;
-    self.correctionFaktor = vDev.get("metrics:correctionFactor");
+    self.correctionFactor = vDev.get("metrics:correctionFactor");
 
 
     var cO2SensorId = self.config.cO2Sensor;
@@ -139,29 +207,33 @@ PersonIdentificationModule.prototype.init = function (config) {
 
     if (cO2SensorId) {
         self.controller.devices.on(cO2SensorId, "change:metrics:level", function () {
-            if (self.lookAfterOpenDandW(self.config.doorWindowContacts, self)) {
+            if (vDev.get("metrics:runningState")) {
+                if (self.lookAfterOpenDandW(self.config.doorWindowContacts, self)) {
 
-                //some seeing of overdriven measurepoints
-                var cO2Device = self.controller.devices.get(cO2SensorId);
-                if (self.measuredata.startTime === 0) {
+                    //some seeing of overdriven measurepoints
+                    var cO2Device = self.controller.devices.get(cO2SensorId);
+                    if (self.measuredata.startTime === 0) {
 
-                    self.measuredata.startTime = new Date().getTime();
-                    self.makeMeasurePoint(cO2Device, self.measuredata);
-                } else {
-                    if (self.measuredata.startTime + self.waitingMinutes * 60000 < new Date().getTime()) {
+                        self.measuredata.startTime = new Date().getTime();
                         self.makeMeasurePoint(cO2Device, self.measuredata);
-                        self.line = self.getRegressionLineParameter(self.measuredata, self.line);
-                        var delta = ((self.getRegressionLineValue(self.line, self.measuredata.xList[self.measuredata.xList.length - 1])) - (self.getRegressionLineValue(self.line, self.measuredata.xList[0])))
-                                * self.correctionFaktor;
-                        //eigentlich sollte das immer beim init passieren aber es geht nicht der mist
-                        self.readPersonCounter(persoCounterId, self.measuredata);
-
-                        //
-                        self.makeStatement(self.identify(delta, self.personas, self.personCount, self.roomVolume, self.waitingMinutes, self.adultCount), self);
-                        self.controller.addNotification("info", "PersonIdentificationModule " + self.adultFound + " new status " + delta, "module", "PersonIdentificationModule");
-                        //self.initMeasureData(self.measuredata);
                     } else {
-                        self.makeMeasurePoint(cO2Device, self.measuredata);
+                        if (self.measuredata.startTime + self.waitingMinutes * 60000 < new Date().getTime()) {
+                            self.makeMeasurePoint(cO2Device, self.measuredata);
+                            self.line = self.getRegressionLineParameter(self.measuredata, self.line);
+                            var delta = ((self.getRegressionLineValue(self.line, self.measuredata.xList[self.measuredata.xList.length - 1])) - (self.getRegressionLineValue(self.line, self.measuredata.xList[0])))
+                                    * self.correctionFactor;
+                            //eigentlich sollte das immer beim init passieren aber es geht nicht der mist
+                            self.readPersonCounter(persoCounterId, self.measuredata);
+
+                            //
+                            self.makeStatement(self.identify(delta, self.personas, self.personCount, self.roomVolume, self.waitingMinutes, self.adultCount), self);
+                            if (self.vDev.get("metrics:debug")) {
+                                self.controller.addNotification("info", "PersonIdentificationModule " + self.adultFound + " new status " + delta, "module", "PersonIdentificationModule");
+                            }
+                            //self.initMeasureData(self.measuredata);
+                        } else {
+                            self.makeMeasurePoint(cO2Device, self.measuredata);
+                        }
                     }
                 }
             }
@@ -170,40 +242,46 @@ PersonIdentificationModule.prototype.init = function (config) {
 
     if (persoCounterId) {
         self.controller.devices.on(persoCounterId, "change:metrics:level", function () {
-            var pcOld = self.personCount;
-            self.readPersonCounter(persoCounterId, self.measuredata);
-            self.makeStatement(false, self);
-            self.highGetData.lastPValue = new Date().getTime();
-            self.highGetData.value = self.personCount - pcOld;
-            self.lookForAdult(self);
-
+            if (vDev.get("metrics:runningState")) {
+                var pcOld = self.personCount;
+                self.readPersonCounter(persoCounterId, self.measuredata);
+                self.makeStatement(false, self);
+                self.highGetData.lastPValue = new Date().getTime();
+                self.highGetData.value = self.personCount - pcOld;
+                self.lookForAdult(self);
+            }
         });
     }
 
     self.config.doorWindowContacts.forEach(
             function (each) {
                 self.controller.devices.on(each, "change:metrics:level", function () {
-                    self.makeStatement(false, self);
+                    if (vDev.get("metrics:runningState")) {
+                        self.makeStatement(false, self);
+                    }
                 });
             }
     );
     self.config.peopleSizeMeasurement.forEach(
             function (each) {
                 self.controller.devices.on(each, "change:metrics:level", function () {
-                    if (self.personCount === 0) {
-                        self.personCount = self.readPersonCounter(persoCounterId, self.measuredata);
+                    if (vDev.get("metrics:runningState")) {
+                        if (self.personCount === 0) {
+                            self.personCount = self.readPersonCounter(persoCounterId, self.measuredata);
 
-                    }
-                    var measurePoint = self.controller.devices.get(each);
-                    if (measurePoint.get("metrics:level") === "on") {
-                        self.highGetData.lastHighMeasurepoint = new Date().getTime();
-                        self.lookForAdult(self);
+                        }
+                        var measurePoint = self.controller.devices.get(each);
+                        if (measurePoint.get("metrics:level") === "on") {
+                            self.highGetData.lastHighMeasurepoint = new Date().getTime();
+                            self.lookForAdult(self);
+                        }
                     }
                 });
             }
     );
-
-    self.controller.addNotification("info", "PersonIdentificationModule init Success ", "module", "PersonIdentificationModule");
+    if (vDev.get("metrics:debug")) {
+        self.controller.addNotification("info", "PersonIdentificationModule init Success ", "module", "PersonIdentificationModule");
+    }
 
 };
 
@@ -257,9 +335,9 @@ PersonIdentificationModule.prototype.lookForAdult = function (self) {
     }
     ;
     self.vDev.set("metrics:adultCount", self.adultCount);
-
-    self.controller.addNotification("info", "PersonIdentificationModule acountoffadult " + self.adultCount, "module", "PersonIdentificationModule");
-
+    if (self.vDev.get("metrics:debug")) {
+        self.controller.addNotification("info", "PersonIdentificationModule acountoffadult " + self.adultCount, "module", "PersonIdentificationModule");
+    }
 };
 
 /**
@@ -377,8 +455,9 @@ PersonIdentificationModule.prototype.identify = function (delta, personas, perso
         }
     }
     ;
-    this.controller.addNotification("info", "identify" + delta + " u " + minDelta, "module", "PersonIdentificationModule");
-
+    if (this.vDev.get("metrics:debug")) {
+        this.controller.addNotification("info", "identify" + delta + " u " + minDelta, "module", "PersonIdentificationModule");
+    }
     if (delta < minDelta) {
         return false;
     } else {
@@ -445,8 +524,9 @@ PersonIdentificationModule.prototype.readPersonCounter = function (persoCounterI
     var personCounterDevice = this.controller.devices.get(persoCounterId);
     this.personCount = personCounterDevice.get("metrics:level");
     this.initMeasureData(measureData);
-    this.controller.addNotification("info", "PersonIdentificationModule new pcouner: " + this.personCount, "module", "PersonIdentificationModule");
-
+    if (this.vDev.get("metrics:debug")) {
+        this.controller.addNotification("info", "PersonIdentificationModule new pcouner: " + this.personCount, "module", "PersonIdentificationModule");
+    }
 };
 
 /**
@@ -471,10 +551,12 @@ PersonIdentificationModule.prototype.makeStatement = function (bool, self) {
         self.vDev.set("metrics:adultCount", self.adultCount);
         self.vDev.set("metrics:personCount", self.personCount);
         self.controller.devices.emit(self.eventID + '_no_adult_there');
-        
+
     }
     self.measuredata = self.initMeasureData(self.measuredata);
-    self.controller.addNotification("info", "PersonIdentificationModule make Statement: " + self.vDev.get("metrics:level"), "module", "PersonIdentificationModule");
+    if (self.vDev.get("metrics:debug")) {
+        self.controller.addNotification("info", "PersonIdentificationModule make Statement: " + self.vDev.get("metrics:level"), "module", "PersonIdentificationModule");
+    }
 };
 
 /**

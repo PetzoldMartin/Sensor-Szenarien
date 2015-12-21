@@ -56,7 +56,21 @@
                 }
 
             },
-            "roomHigh": {
+          
+            "room": {
+                "type": "integer",
+                "required": true
+            },
+            "correctionFactor": {
+                "type": "integer",
+                "required": true
+            }
+            ,
+            "highmeasureWaitingtime": {
+                "type": "integer",
+                "required": true
+            },
+              "roomHigh": {
                 "type": "integer",
                 "required": true
             },
@@ -65,14 +79,6 @@
                 "required": true
             },
             "roomLength": {
-                "type": "integer",
-                "required": true
-            },
-            "room": {
-                "type": "integer",
-                "required": true
-            },
-            "correctionFactor": {
                 "type": "integer",
                 "required": true
             }
@@ -127,9 +133,26 @@
                 "items": {
                     "type": "radio"
                 }
+            },
+          
+            "room": {
+                "label": "__l_room_id__",
+                "type": "integer",
+                "helper": "__l_room_help__"
+            },
+            "correctionFactor": {
+                "label": "__l_co_id__",
+                "type": "integer",
+                "helper": "__l_co_help__"
+            }
+            ,
+            "highmeasureWaitingtime": {
+                "label": "__l_hwt_id__",
+                "type": "integer",
+                "helper": "__l_hwt_help__"
 
             },
-            "roomHigh": {
+              "roomHigh": {
                 "label": "__l_RoomHigh__",
                 "type": "integer",
                 "placeholder": "__l_RoomHigh_placeholder__"
@@ -143,17 +166,6 @@
                 "label": "__l_RoomLength__",
                 "type": "integer",
                 "placeholder": "__l_RoomLength_placeholder__"
-            },
-            "room": {
-                "label": "__l_room_id__",
-                "type": "integer",
-                "helper": "__l_room_help__"
-            },
-            "correctionFactor": {
-                "label": "__l_co_id__",
-                "type": "integer",
-                "helper": "__l_co_help__"
-
             }
         }
     }
