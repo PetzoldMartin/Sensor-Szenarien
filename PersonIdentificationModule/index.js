@@ -55,7 +55,7 @@ PersonIdentificationModule.prototype.init = function (config) {
                 deviceId: "PersonIdentificationModule_" + this.id,
                 defaults: {
                     metrics: {
-                        title: "CO2 Sensor Test Modul" + this.id,
+                        title: "Person Identifikation Modul" + this.id,
                         level: "off",
                         room: -1,
                         correctionFactor: 1,
@@ -66,10 +66,11 @@ PersonIdentificationModule.prototype.init = function (config) {
                         alarmSwitchDeviceId: -1,
                         highmeasureWaitingtime: 1,
                         debug: false,
+                        waitingMinutes: 2
                     }
                 },
                 overlay: {
-                    deviceType: "switchBinary",
+                    deviceType: "sensorBinary",
                     metrics: {
                         icon: "/ZAutomation/api/v1/load/modulemedia/PersonIdentificationModule/icon.png"
                     }
@@ -87,16 +88,16 @@ PersonIdentificationModule.prototype.init = function (config) {
 
                             return{
                                 'code': 1,
-                                'debug State': vDev.get("metrics:runningState")
+                                'runningState': vDev.get("metrics:runningState")
                             };
                         case "stop":
                             vDev.set("metrics:runningState", false);
-                            self.controller.devices.emit(self.eventID + '_started');
+                            self.controller.devices.emit(self.eventID + '_stoped');
 
 
                             return{
                                 'code': 1,
-                                'debug State': vDev.get("metrics:runningState")
+                                'runningState': vDev.get("metrics:runningState")
                             };
                         case "debugOff":
                             vDev.set("metrics:debug", false);
@@ -199,8 +200,9 @@ PersonIdentificationModule.prototype.init = function (config) {
     });
 
     self.roomVolume = (self.config.roomHigh * self.config.roomWidth * self.config.roomLength) / 1000;
+    self.waitingMinutes = self.roomVolume / 25000;
+    vDev.set("metrics:waitingMinutes", self.waitingMinutes);
     self.correctionFactor = vDev.get("metrics:correctionFactor");
-
 
     var cO2SensorId = self.config.cO2Sensor;
     var persoCounterId = self.config.personCounter;
