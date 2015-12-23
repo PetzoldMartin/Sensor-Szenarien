@@ -325,12 +325,13 @@ PersonIdentificationModule.prototype.lookForAdult = function (self) {
             if (value !== 0) {
                 self.adultCount += value;
             }
-        }
-        this.highGetData = {
+             this.highGetData = {
             lastHighMeasurepoint: 0,
             lastPValue: 0,
             value: 0
         };
+        }
+       
     }
     if (self.personCount < self.adultCount) {
         self.adultCount = self.personCount;
