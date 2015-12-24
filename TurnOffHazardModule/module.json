@@ -25,6 +25,10 @@
 					"turnOffTimerDuration": {
 						"type": "integer",
 						"required": true
+					},
+					"turnOffTimerPriority": {
+						"type": "integer",
+						"required": false
 					}
 				}
 			},
@@ -58,6 +62,11 @@
 						"label": "__l_turn_off_timer_duration__",
 						"type": "integer",
 						"helper": "__l_turn_off_timer_duration_help__"
+					},
+					"turnOffTimerPriority": {
+						"label": "__l_turn_off_timer_priority__",
+						"type": "integer",
+						"helper": "__l_turn_off_timer_priority_help__"
 					}
 				}
 			},

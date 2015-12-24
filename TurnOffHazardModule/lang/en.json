@@ -6,6 +6,8 @@
 	"l_hazards":"Add some hazards",
 	"l_turn_off_timer_duration":"Set a duration for the turn off timer (sec)",
 	"l_turn_off_timer_duration_help":"In this period the user is given the opportunity to cancel the action.",
+	"l_turn_off_timer_priority":"Set a priority for the turn off timer (a high number means a high priority)",
+	"l_turn_off_timer_priority_help":"The priority allows coordination through concurrent access by other modules. Note the priorities of other modules that use the turn off timer.<br /><i>Default: 5</i>",
 	"l_common_options":"Common options",
 	"l_hazardContainer":"Hazards",
 	"l_hazards_label":"Select a binary or multilevel switch device"

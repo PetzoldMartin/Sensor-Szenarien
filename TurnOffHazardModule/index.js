@@ -62,13 +62,18 @@ TurnOffHazardModule.prototype.init = function (config) {
 
                     var turnOffTimerDuration = 60; // default
                     if(self.config.commonOptions.turnOffTimerDuration) {
-                        var turnOffTimerDuration = self.config.commonOptions.turnOffTimerDuration;
+                        turnOffTimerDuration = self.config.commonOptions.turnOffTimerDuration;
+                    }
+
+                    var turnOffTimerPriority = 5; // default
+                    if(self.config.commonOptions.turnOffTimerPriority) {
+                        turnOffTimerPriority = self.config.commonOptions.turnOffTimerPriority;
                     }
 
                     // start turn off timer
                     var turnOffTimerModule = self.controller.devices.get(vDev.get('metrics:turnOffTimerModuleId'));
                     if(turnOffTimerModule)
-                        turnOffTimerModule.performCommand('start_timer', {'time': turnOffTimerDuration});
+                        turnOffTimerModule.performCommand('start_timer', {'time': turnOffTimerDuration, 'priority': turnOffTimerPriority});
                     else {
                         self.controller.addNotification("warning", "TurnOffTimerModule need a restart of ZWay Server.", "module", "TurnOffTimerModule");
                     }
