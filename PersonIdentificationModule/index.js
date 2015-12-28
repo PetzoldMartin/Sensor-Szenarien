@@ -184,9 +184,9 @@ PersonIdentificationModule.prototype.init = function (config) {
         vDev.set("metrics:room", self.config.room);
     }
     ;
-    if (vDev.get("metrics:highmeasureWaitingtime") === 1) {
+  
         vDev.set("metrics:highmeasureWaitingtime", self.config.highmeasureWaitingtime);
-    }
+    
     ;
     if (vDev.get("metrics:correctionFactor") === 1) {
         vDev.set("metrics:correctionFactor", self.config.correctionFactor);
@@ -317,8 +317,8 @@ PersonIdentificationModule.prototype.stop = function () {
  * @returns {nothing}
  */
 PersonIdentificationModule.prototype.lookForAdult = function (self) {
-    var time = self.highGetData.lastPValue;
-    var oTime = self.highGetData.lastHighMeasurepoint;
+    var time = self.highGetData.lastPValue/1000;
+    var oTime = self.highGetData.lastHighMeasurepoint/1000;
     var value = self.highGetData.value;
     if (!(time === 0 | oTime === 0)) {
         if (oTime !== 0 & oTime <= time + self.highmeasureWaitingtime & oTime >= time - self.highmeasureWaitingtime) {
