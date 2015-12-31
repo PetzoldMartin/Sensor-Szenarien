@@ -284,15 +284,23 @@ TurnOffHazardModule.prototype.turnOffAllHazards = function () {
     var self = this;
 
     self.config.hazardContainer.hazards.forEach(function(el) {
-        var vDev = self.controller.devices.get(el);
+        // check the action (only on or off makes an action necessary)
+        if(el.actionWhenTurningOff == 'on' || el.actionWhenTurningOff == 'off') {
+            var vDev = self.controller.devices.get(el.device);
 
-        if (vDev) {
-            var deviceType = vDev.get("deviceType");
+            if (vDev) {
+                var deviceType = vDev.get("deviceType");
 
-            if (deviceType === "switchBinary") {
-                vDev.performCommand("off");
-            } else if (deviceType === "switchMultilevel") {
-                vDev.performCommand("exact", { level: 0 });
+                if (deviceType === "switchBinary") {
+                    vDev.performCommand(el.actionWhenTurningOff);
+                } else if (deviceType === "switchMultilevel") {
+                    if(el.actionWhenTurningOff == 'on') {
+                        vDev.performCommand("exact", { level: 99 });
+                    }
+                    else {
+                        vDev.performCommand("exact", { level: 0 });
+                    }
+                }
             }
         }
     });
@@ -305,15 +313,23 @@ TurnOffHazardModule.prototype.turnOnAllHazards = function () {
     var self = this;
 
     self.config.hazardContainer.hazards.forEach(function(el) {
-        var vDev = self.controller.devices.get(el);
+        // check the action (only on or off makes an action necessary)
+        if(el.actionWhenTurningOn == 'on' || el.actionWhenTurningOn == 'off') {
+            var vDev = self.controller.devices.get(el.device);
 
-        if (vDev) {
-            var deviceType = vDev.get("deviceType");
+            if (vDev) {
+                var deviceType = vDev.get("deviceType");
 
-            if (deviceType === "switchBinary") {
-                vDev.performCommand("on");
-            } else if (deviceType === "switchMultilevel") {
-                vDev.performCommand("exact", { level: 99 });
+                if (deviceType === "switchBinary") {
+                    vDev.performCommand(el.actionWhenTurningOn);
+                } else if (deviceType === "switchMultilevel") {
+                    if(el.actionWhenTurningOn == 'on') {
+                        vDev.performCommand("exact", { level: 99 });
+                    }
+                    else {
+                        vDev.performCommand("exact", { level: 0 });
+                    }
+                }
             }
         }
     });

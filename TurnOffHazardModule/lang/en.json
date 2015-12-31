@@ -10,5 +10,7 @@
 	"l_turn_off_timer_priority_help":"The priority allows coordination through concurrent access by other modules. Note the priorities of other modules that use the turn off timer.<br /><i>Default: 5</i>",
 	"l_common_options":"Common options",
 	"l_hazardContainer":"Hazards",
-	"l_hazards_label":"Select a binary or multilevel switch device"
+	"l_hazards_label":"Select a binary or multilevel switch device",
+	"l_action_when_turning_off":"Select an action when turning off the hazard",
+	"l_action_when_turning_on":"Select an action when turning on the hazard"
 }

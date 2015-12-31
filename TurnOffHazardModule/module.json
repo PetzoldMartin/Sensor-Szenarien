@@ -38,10 +38,27 @@
 					"hazards": {
 						"type": "array",
 						"items": {
-							"field": "enum",
-							"datasource": "namespaces",
-							"enum": "namespaces:devices_switchBinary:deviceId,namespaces:devices_switchMultilevel:deviceId",
-							"required": true
+							"type": "object",
+							"properties": {
+								"device": {
+									"field": "enum",
+									"datasource": "namespaces",
+									"enum": "namespaces:devices_switchBinary:deviceId,namespaces:devices_switchMultilevel:deviceId",
+									"required": true
+								},
+								"actionWhenTurningOff": {
+									"type": "string",
+									"required": true,
+									"enum": ["none", "off", "on"],
+									"default": "off"
+								},
+								"actionWhenTurningOn": {
+									"type": "string",
+									"required": true,
+									"enum": ["none", "off", "on"],
+									"default": "on"
+								}
+							}
 						}
 					}
 				}
@@ -77,11 +94,21 @@
 						"label": "__l_hazards__",
 						"fields": {
 							"item": {
-								"label": "__l_hazards_label__",
-								"type": "select",
-								"datasource": "namespaces",
-								"field": "optionLabels",
-								"optionLabels": "namespaces:devices_switchBinary:deviceName,namespaces:devices_switchMultilevel:deviceName"
+								"fields": {
+									"device": {
+										"label": "__l_hazards_label__",
+										"type": "select",
+										"datasource": "namespaces",
+										"field": "optionLabels",
+										"optionLabels": "namespaces:devices_switchBinary:deviceName,namespaces:devices_switchMultilevel:deviceName"
+									},
+									"actionWhenTurningOff": {
+										"label": "__l_action_when_turning_off__"
+									},
+									"actionWhenTurningOn": {
+										"label": "__l_action_when_turning_on__"
+									}
+								}
 							}
 						}
 					}
