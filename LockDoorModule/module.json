@@ -39,12 +39,12 @@
 	            "helper": "__door_lock_help__"
 	        },
 			"switch": {
-	            "label": "switch",
+	            "label": "__switch__",
 	            "type": "select",
 	            "datasource": "namespaces",
 	            "field": "optionLabels",
 	            "optionLabels": "namespaces:devices_switchBinary:deviceName",
-	            "helper": "for debugging and testing on localhost"
+	            "helper": "__switch_help__"
 	        }
 	    }
 	}
