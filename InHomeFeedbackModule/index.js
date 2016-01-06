@@ -41,6 +41,8 @@ InHomeFeedbackModule.prototype.init = function (config) {
         // TODO: Error
     }
 
+    self.interval = 0.5;
+
     // Initialize a finite state machine for light control
     self.fsm = self.initFSM();
 
@@ -103,6 +105,12 @@ InHomeFeedbackModule.prototype.init = function (config) {
 							self.defermentDuration = args.duration;
 						}
 					}
+
+                    if (command == "interval") {
+                        if (args.time) {
+                            self.interval = time;
+                        }
+                    }
 
 					// ... transition
 					self.fsm[command]();
@@ -231,7 +239,7 @@ InHomeFeedbackModule.prototype.startVisualActuatorsMechanism = function () {
                 });
                 visualActuatorsActive = true;
             }
-        }, 2 * 1000);
+        }, self.interval * 1000);
     }
 };
 
