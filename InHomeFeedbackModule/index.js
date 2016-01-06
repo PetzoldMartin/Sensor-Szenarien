@@ -106,12 +106,6 @@ InHomeFeedbackModule.prototype.init = function (config) {
 						}
 					}
 
-                    if (command == "interval") {
-                        if (args.time) {
-                            self.interval = time;
-                        }
-                    }
-
 					// ... transition
 					self.fsm[command]();
 
@@ -132,6 +126,10 @@ InHomeFeedbackModule.prototype.init = function (config) {
                     self.debug = true;
                 } else {
                     self.debug = false;
+                }
+            } else if (command == "setInterval") {
+                if (args.time) {
+                    self.interval = args.time;
                 }
             } else {
                 return {
