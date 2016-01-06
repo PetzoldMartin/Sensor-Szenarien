@@ -6,18 +6,20 @@
     "l_DoorWindowContacts": "Contacts  door/windows are open or closed",
     "l_SizeMeasurement": "sensors for high measurement",
     "l_Personas": "Archetyps for CO2 consumption",
-    "l_RoomHigh": "High of the Room in Meter",
-    "l_RoomHigh_placeholder": "X Meter",
-    "l_RoomWidth": "Width of the Room in Meter",
-    "l_RoomWidth_placeholder": "X Meter",
-    "l_RoomLength": "Length of the Room in Meter",
-    "l_RoomLength_placeholder": "X Meter",
+    "l_RoomHigh": "High of the Room in Centimeter",
+    "l_RoomHigh_placeholder": "X Centimeter",
+    "l_RoomWidth": "Width of the Room in Centimeter",
+    "l_RoomWidth_placeholder": "X Centimeter",
+    "l_RoomLength": "Length of the Room in Centimeter",
+    "l_RoomLength_placeholder": "X Centimeter",
     "l_room_id": "Id of the Room where the Modul Works",
     "l_room_help": "RoomID",
     "l_co_id": "CO2 Sensor correction Factor",
     "l_co_help": "Factor",
     "l_PersonenCounter": "The Person Counter of the Room",
-    "l_PersonenCounter_help": "ID"
+    "l_PersonenCounter_help": "ID",
+     "l_hwt_id": "timedelta off personcount and Highmeasurement in seconds",
+    "l_hwt_help": "Factor"
 
 
 }

@@ -15,47 +15,104 @@
 	"schema" : {
 		"type" : "object",
 		"properties" : {
-			"room": {
-				"type": "integer",
-				"required": true
-			},
-			"hazards": {
-				"type": "array",
-				"items": {
-					"field": "enum",
-					"datasource": "namespaces",
-					"enum": "namespaces:devices_switchBinary:deviceId,namespaces:devices_switchMultilevel:deviceId",
-					"required": true
+			"commonOptions": {
+				"type": "object",
+				"properties": {
+					"room": {
+						"type": "integer",
+						"required": true
+					},
+					"turnOffTimerDuration": {
+						"type": "integer",
+						"required": true
+					},
+					"turnOffTimerPriority": {
+						"type": "integer",
+						"required": false
+					}
 				}
 			},
-			"turnOffTimerDuration": {
-				"type": "integer",
-				"required": true
+			"hazardContainer": {
+				"type": "object",
+				"properties": {
+					"hazards": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"device": {
+									"field": "enum",
+									"datasource": "namespaces",
+									"enum": "namespaces:devices_switchBinary:deviceId,namespaces:devices_switchMultilevel:deviceId",
+									"required": true
+								},
+								"actionWhenTurningOff": {
+									"type": "string",
+									"required": true,
+									"enum": ["none", "off", "on"],
+									"default": "off"
+								},
+								"actionWhenTurningOn": {
+									"type": "string",
+									"required": true,
+									"enum": ["none", "off", "on"],
+									"default": "on"
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 	},
 	"options": {
 		"fields": {
-			"room": {
-				"label": "__l_room_id__",
-				"type": "integer",
-				"helper": "__l_room_help__"
-			},
-			"hazards": {
-				"label": "__l_hazards__",
+			"commonOptions": {
+				"label": "__l_common_options__",
 				"fields": {
-					"item": {
-						"type": "select",
-						"datasource": "namespaces",
-						"field": "optionLabels",
-						"optionLabels": "namespaces:devices_switchBinary:deviceName,namespaces:devices_switchMultilevel:deviceName"
+					"room": {
+						"label": "__l_room_id__",
+						"type": "integer",
+						"helper": "__l_room_help__"
+					},
+					"turnOffTimerDuration": {
+						"label": "__l_turn_off_timer_duration__",
+						"type": "integer",
+						"helper": "__l_turn_off_timer_duration_help__"
+					},
+					"turnOffTimerPriority": {
+						"label": "__l_turn_off_timer_priority__",
+						"type": "integer",
+						"helper": "__l_turn_off_timer_priority_help__"
 					}
 				}
 			},
-			"turnOffTimerDuration": {
-				"label": "__l_turn_off_timer_duration__",
-				"type": "integer",
-				"helper": "__l_turn_off_timer_duration_help__"
+			"hazardContainer": {
+				"label": "__l_hazardContainer__",
+				"fields": {
+					"hazards": {
+						"label": "__l_hazards__",
+						"fields": {
+							"item": {
+								"fields": {
+									"device": {
+										"label": "__l_hazards_label__",
+										"type": "select",
+										"datasource": "namespaces",
+										"field": "optionLabels",
+										"optionLabels": "namespaces:devices_switchBinary:deviceName,namespaces:devices_switchMultilevel:deviceName"
+									},
+									"actionWhenTurningOff": {
+										"label": "__l_action_when_turning_off__"
+									},
+									"actionWhenTurningOn": {
+										"label": "__l_action_when_turning_on__"
+									}
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 	}

@@ -82,9 +82,6 @@ LockDoorModule.prototype.init = function (config) {
                 if (self.peoplePresent) {
                     vDev.set("metrics:level", "standby imposible, there are people present");
                     // notify user
-                } else {
-                    // start feedback module
-                    // start timer
                 }
             }
         });
@@ -115,7 +112,7 @@ LockDoorModule.prototype.checkPersonCountersAndStartTurnOffTimer = function (vDe
     // subscribe for counter expired events
     if (this.roomWithTurnOffTimer.length > 0) {
         for (var i = 0; i < this.roomWithTurnOffTimer.length; i++) {
-            var rommId = this.roomWithTurnOffTimer[i];
+            var roomId = this.roomWithTurnOffTimer[i];
             // self.controller.devices.on();
             // TODO
         }
@@ -128,7 +125,7 @@ LockDoorModule.prototype.manageTurnOffTimerForRoom = function (currentRoomId) {
     if (turnOffTimerModuleId) {
         var turnOffTimer =  self.controller.devices.get(turnOffTimerModuleId);
 
-        turnOffTimer.performCommand('start_timer', {'time': 15});
+        turnOffTimer.performCommand('start_timer', {'time': 15, 'priority': 1});
         this.roomWithTurnOffTimer.push(currentRoomId);
 
         this.controller.devices.on(turnOffTimerModuleId, 'TurnOffTimerModule_' + currentRoomId + "_expired", function() {
@@ -150,6 +147,12 @@ LockDoorModule.prototype.manageTurnOffTimerForRoom = function (currentRoomId) {
         self.controller.devices.off(turnOffTimerModuleId, 'TurnOffTimerModule_' + currentRoomId + "_canceled", function(){});
         // there are persons in the room, don't send an event
     });
+
+    // unsubscribe from all subsriptions after 5 mins
+    setTimeout(function () {
+        self.controller.devices.off(turnOffTimerModuleId, 'TurnOffTimerModule_' + currentRoomId + "_canceled", function(){});
+        self.controller.devices.off(turnOffTimerModuleId, 'TurnOffTimerModule_' + currentRoomId + "_expired", function(){});
+    }, 60 * 5 * 1000);
 }
 
 // This creates a TurnOffTimer only if the room has a InHomeFeedbackModule associated.

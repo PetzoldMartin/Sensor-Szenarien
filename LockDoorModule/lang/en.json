@@ -1,6 +1,8 @@
 {
-	"m_title":"Door Lock Module",
-	"m_descr":"This module observes the door lock and notifies other modules, if nobody is in the flat.",
-	"door_lock":"Door Lock",
-	"door_lock_help":"This specifies the flats door lock. This can also be a binary switch."
+	"m_title": "Door Lock Module",
+	"m_descr": "This module observes the door lock and notifies other modules, if nobody is in the flat.",
+	"door_lock": "Door Lock",
+	"door_lock_help": "This specifies the flats door lock. This can also be a binary switch like a wall controller.",
+	"switch": "Switch",
+	"switch_help": "This sprecifies a binary switch to simulate a door lock. This is useful for testing and debugging, if no real door lock is installed."
 }
