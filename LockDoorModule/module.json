@@ -18,12 +18,12 @@
 	        "doorLock": {
 	            "field": "enum",
 	            "datasource": "namespaces",
-	            "enum": "namespaces:devices_buttonControl:deviceId"
+	            "enum": "namespaces:devices_buttonControl:deviceId,namespaces:devices_toggleButton:deviceId,namespaces:devices_switchControl:deviceId"
 	        },
 			"switch": {
 	            "field": "enum",
 	            "datasource": "namespaces",
-	            "enum": "namespaces:devices_switchBinary:deviceId"
+	            "enum": "namespaces:devices_switchBinary:deviceId,namespaces:devices_toggleButton:deviceId,namespaces:devices_switchControl:deviceId"
 	        }
 	    },
 	    "required": false
@@ -35,7 +35,7 @@
 	            "type": "select",
 	            "datasource": "namespaces",
 	            "field": "optionLabels",
-	            "optionLabels": "namespaces:devices_buttonControl:deviceName",
+	            "optionLabels": "namespaces:devices_buttonControl:deviceName,namespaces:devices_toggleButton:deviceName,namespaces:devices_switchControl:deviceName",
 	            "helper": "__door_lock_help__"
 	        },
 			"switch": {
@@ -43,7 +43,7 @@
 	            "type": "select",
 	            "datasource": "namespaces",
 	            "field": "optionLabels",
-	            "optionLabels": "namespaces:devices_switchBinary:deviceName",
+	            "optionLabels": "namespaces:devices_switchBinary:deviceName,namespaces:devices_toggleButton:deviceName,namespaces:devices_switchControl:deviceName",
 	            "helper": "__switch_help__"
 	        }
 	    }
