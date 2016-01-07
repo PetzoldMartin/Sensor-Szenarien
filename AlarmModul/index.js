@@ -15,6 +15,7 @@ function AlarmModul (id, controller) {
     // Call superconstructor first (AutomationModule)
     AlarmModul.super_.call(this, id, controller);
 
+
     var self = this;
 
     this._testRule = function () {
