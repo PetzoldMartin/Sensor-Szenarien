@@ -15,14 +15,5 @@
 	"h_api_key_sms":"",
 	"l_email":"Email that will be notified",
 	"l_api_key_email":"",
-	"h_api_key_email":"",
-	"l_switches":"List of switches:",
-	"on":"On",
-	"off":"Off",
-	"l_dimmers":"List of dimmers:",
-	"l_status":"Level",
-	"l_locks":"List of locks:",
-	"open":"Open",
-	"close":"Close",
-	"l_scenes":"List of scenes to activate:"
+	"h_api_key_email":""
 }

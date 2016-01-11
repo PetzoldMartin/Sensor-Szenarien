@@ -121,75 +121,7 @@
 		            "api_key_email": {
 		                "required": false,
 		                "pattern": "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{8}"
-		            },
-					"switches": {
-						"type": "array",
-						"items": {
-							"type": "object",
-							"properties": {
-								"device": {
-									"field": "enum",
-									"datasource": "namespaces",
-									"enum": "namespaces:devices_switchBinary:deviceId",
-									"required": true
-								},
-								"status": {
-									"type": "string",
-									"required": true,
-									"enum": ["off", "on"],
-									"default" : "on"
-								}
-							}
-						}
-					},
-					"dimmers": {
-						"type": "array",
-						"items": {
-							"type": "object",
-							"properties": {
-								"device": {
-									"field": "enum",
-									"datasource": "namespaces",
-									"enum": "namespaces:devices_switchMultilevel:deviceId",
-									"required": true
-								},
-								"status": {
-									"required": true,
-									"minimum": 0,
-									"maximum": 99
-								}
-							}
-						}
-					},
-					"locks": {
-						"type": "array",
-						"items": {
-							"type": "object",
-							"properties": {
-								"device": {
-									"field": "enum",
-									"datasource": "namespaces",
-									"enum": "namespaces:devices_doorlock:deviceId",
-									"required": true
-								},
-								"status": {
-									"type": "string",
-									"required": true,
-									"enum": ["close", "open"],
-									"default" : "open"
-								}
-							}
-						}
-					},
-					"scenes": {
-						"type": "array",
-						"items": {
-							"field": "enum",
-							"datasource": "namespaces",
-							"enum": "namespaces:devices_toggleButton:deviceId",
-							"required": true
-						}
-					}
+		            }
 				},
 				"required": false
 			}
@@ -282,78 +214,7 @@
 					"api_key_email": {
 		                "label": "__l_api_key_email__",
 						"helper": "__h_api_key_email__"
-		            },
-					"switches": {
-						"label": "__l_switches__",
-						"fields": {
-							"item": {
-								"fields": {
-									"device": {
-										"label": "",
-										"type": "select",
-										"datasource": "namespaces",
-										"field": "optionLabels",
-										"optionLabels": "namespaces:devices_switchBinary:deviceName"
-									},
-									"status": {
-										"label": "",
-										"optionLabels": ["__off__", "__on__"]
-									}
-								}
-							}
-						}
-					},
-					"dimmers": {
-						"label": "__l_dimmers__",
-						"fields": {
-							"item": {
-								"fields": {
-									"device": {
-										"label": "",
-										"type": "select",
-										"datasource": "namespaces",
-										"field": "optionLabels",
-										"optionLabels": "namespaces:devices_switchMultilevel:deviceName"
-									},
-									"status": {
-										"label": "__l_status__",
-										"type": "integer"
-									}
-								}
-							}
-						}
-					},
-					"locks": {
-						"label": "__l_locks__",
-						"fields": {
-							"item": {
-								"fields": {
-									"device": {
-										"label": "",
-										"type": "select",
-										"datasource": "namespaces",
-										"field": "optionLabels",
-										"optionLabels": "namespaces:devices_doorlock:deviceName"
-									},
-									"status": {
-										"label": "",
-										"optionLabels": ["__close__", "__open__"]
-									}
-								}
-							}
-						}
-					},
-					"scenes": {
-						"label": "__l_scenes__",
-						"fields": {
-							"item": {
-								"type": "select",
-								"datasource": "namespaces",
-								"field": "optionLabels",
-								"optionLabels": "namespaces:devices_toggleButton:deviceName"
-							}
-						}
-					}
+		            }
 				}
 			}
 		}

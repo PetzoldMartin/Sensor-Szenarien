@@ -53,11 +53,13 @@ AlarmModul.prototype.init = function (config) {
                 deviceType: "switchBinary",
                 metrics: {
                     level: 'off',
-                    icon: '',
+                    icon: 'iconNeww.png',
                     title: 'AlarmModul ' + this.id
                 }
             },
-            overlay: {},
+            overlay: {metrics: {
+				icon: "/ZAutomation/api/v1/load/modulemedia/AlarmModul/iconNeww.png"
+			}},
             handler: function(command, args) {
                 this.set("metrics:level", command);
                 // Timer reseten, wenn AlarmModul an
@@ -67,13 +69,30 @@ AlarmModul.prototype.init = function (config) {
                     }
                     // Sensoren aktivieren
                     self.isSensorsCanReact = 1;
+                    self.controller.addNotification("info", "AlarmModule - ON", "module", "AlarmModule");
                 };
+                if (command == "off") {
+                  http.request({
+                      url: 'http://sensor.fh-zwickau.de/index.php?option=com_sensor&task=sensor.setAlarmState&level=off&format=json',
+                      type: 'GET',
+                      async: true,
+                      dataType: "json",
+                      error: function(response) {
+                          self.controller.addNotification("error", response.statusText, "module", 'HelloWorldModul');
+                      }
+                  });
+                  self.isSensorsCanReact = 0;
+                  self.controller.addNotification("info", "AlarmModule - OFF", "module", "AlarmModule");
+                }
             },
             moduleId: this.id
         });
 
     self.attachDetach({device: this.vDev.id}, true);
 
+    self.controller.on("LockDoorModule_locked", function() {
+      self.vDev.performCommand("on");
+    });
     this.config.tests.forEach(function(test) {
         if (test.testType === "binary") {
             self.attachDetach(test.testBinary, true);
@@ -85,17 +104,10 @@ AlarmModul.prototype.init = function (config) {
     });
 };
 
+
+
 AlarmModul.prototype.stop = function () {
     var self = this;
-    http.request({
-        url: 'http://sensor.fh-zwickau.de/index.php?option=com_sensor&task=sensor.setAlarmState&level=off&format=json',
-        type: 'GET',
-        async: true,
-        dataType: "json",
-        error: function(response) {
-            self.controller.addNotification("error", response.statusText, "module", 'HelloWorldModul');
-        }
-    });
 
     if (this.timer) {
         clearTimeout(this.timer);
@@ -221,30 +233,6 @@ AlarmModul.prototype.testRule = function (tree) {
             }
         });
 
-        tree.action.switches && tree.action.switches.forEach(function(devState) {
-            var vDev = self.controller.devices.get(devState.device);
-            if (vDev) {
-                vDev.performCommand(devState.status);
-            }
-        });
-        tree.action.dimmers && tree.action.dimmers.forEach(function(devState) {
-            var vDev = self.controller.devices.get(devState.device);
-            if (vDev) {
-                vDev.performCommand("exact", { level: devState.status });
-            }
-        });
-        tree.action.locks && tree.action.locks.forEach(function(devState) {
-            var vDev = self.controller.devices.get(devState.device);
-            if (vDev) {
-                vDev.performCommand(devState.status);
-            }
-        });
-        tree.action.scenes && tree.action.scenes.forEach(function(scene) {
-            var vDev = self.controller.devices.get(scene);
-            if (vDev) {
-                vDev.performCommand("on");
-            }
-        });
     }
 };
 
