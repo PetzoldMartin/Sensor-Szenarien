@@ -147,6 +147,26 @@ TurnOffHazardModule.prototype.init = function (config) {
                     'message': 'OK',
                     'history': storedHistory
                 }
+            } else if (command === "setHazardsState") {
+                if(args.state) {
+                    self.hazardsState = args.state;
+
+                    // send a response: all OK ...
+                    return {
+                        'code': 1,
+                        'message': 'Hazards state changed: ' + self.hazardsState
+                    }
+                } else {
+                    return {
+                        'code': 3,
+                        'message': 'Error - missing parameter state'
+                    }
+                }
+            } else if (command === "getHazardsState") {
+                return {
+                    'code': 1,
+                    'message': 'Hazards state is currently: ' + self.hazardsState
+                }
             } else if (command === "reset") {
                 vDev.set('metrics:personCount', 0);
                 vDev.set('metrics:adultCount', 0);
@@ -169,6 +189,9 @@ TurnOffHazardModule.prototype.init = function (config) {
     });
 
     self.vDev = vDev;
+
+    // init flag
+    self.hazardsState = 'active';
 
     // Wait for event core.start, which indicates, that all modules are loaded.
     // Otherwise an exception will be thrown, because the module can not be used.
@@ -214,37 +237,45 @@ TurnOffHazardModule.prototype.init = function (config) {
         self.personIdentificationDeviceId = self.getPersonIdentificationDeviceId(self.config.commonOptions.room);
         if (self.personIdentificationDeviceId) {
             self.controller.devices.on(self.personIdentificationDeviceId, 'PersonIdentificationModule_' + self.config.commonOptions.room + '_no_adult_there', function() {
-                // no adult in room
-                self.vDev.performCommand("hazardOff");
+                if(self.hazardsState) {
+                    if(self.hazardsState == 'active') {
+                        // no adult in room
+                        self.vDev.performCommand("hazardOff");
 
-                // update own metric values
-                var personIdentificationVDev = self.controller.devices.get(self.personIdentificationDeviceId);
+                        // update own metric values
+                        var personIdentificationVDev = self.controller.devices.get(self.personIdentificationDeviceId);
 
-                if(personIdentificationVDev) {
-                    var personCount = personIdentificationVDev.get("metrics:personCount");
-                    var adultCount = personIdentificationVDev.get("metrics:adultCount");
+                        if(personIdentificationVDev) {
+                            var personCount = personIdentificationVDev.get("metrics:personCount");
+                            var adultCount = personIdentificationVDev.get("metrics:adultCount");
 
-                    // store new metric values for person count, adult count, child count
-                    vDev.set('metrics:personCount', personCount);
-                    vDev.set('metrics:adultCount', adultCount);
-                    vDev.set('metrics:childCount', personCount - adultCount);
+                            // store new metric values for person count, adult count, child count
+                            vDev.set('metrics:personCount', personCount);
+                            vDev.set('metrics:adultCount', adultCount);
+                            vDev.set('metrics:childCount', personCount - adultCount);
+                        }
+                    }
                 }
             });
             self.controller.devices.on(self.personIdentificationDeviceId, 'PersonIdentificationModule_' + self.config.commonOptions.room + '_adult_there', function() {
-                // at least one adult in room
-                self.vDev.performCommand("hazardOn");
+                if(self.hazardsState) {
+                    if(self.hazardsState == 'inactive') {
+                        // at least one adult in room
+                        self.vDev.performCommand("hazardOn");
 
-                // update own metric values
-                var personIdentificationVDev = self.controller.devices.get(self.personIdentificationDeviceId);
+                        // update own metric values
+                        var personIdentificationVDev = self.controller.devices.get(self.personIdentificationDeviceId);
 
-                if(personIdentificationVDev) {
-                    var personCount = personIdentificationVDev.get("metrics:personCount");
-                    var adultCount = personIdentificationVDev.get("metrics:adultCount");
+                        if(personIdentificationVDev) {
+                            var personCount = personIdentificationVDev.get("metrics:personCount");
+                            var adultCount = personIdentificationVDev.get("metrics:adultCount");
 
-                    // store new metric values for person count, adult count, child count
-                    vDev.set('metrics:personCount', personCount);
-                    vDev.set('metrics:adultCount', adultCount);
-                    vDev.set('metrics:childCount', personCount - adultCount);
+                            // store new metric values for person count, adult count, child count
+                            vDev.set('metrics:personCount', personCount);
+                            vDev.set('metrics:adultCount', adultCount);
+                            vDev.set('metrics:childCount', personCount - adultCount);
+                        }
+                    }
                 }
             });
         } else {
@@ -307,6 +338,9 @@ TurnOffHazardModule.prototype.turnOffAllHazards = function () {
 
     // add history data also if no hazard configured
     self.addHistoryEntry('A shutdown of hazards has been successfully performed.');
+
+    // set flag
+    self.hazardsState = 'inactive';
 }
 
 TurnOffHazardModule.prototype.turnOnAllHazards = function () {
@@ -336,6 +370,9 @@ TurnOffHazardModule.prototype.turnOnAllHazards = function () {
 
     // add history data also if no hazard configured
     self.addHistoryEntry('An activation of hazards has been performed.');
+
+    // set flag
+    self.hazardsState = 'active';
 }
 
 TurnOffHazardModule.prototype.getPersonCounterDeviceId = function (roomId) {
