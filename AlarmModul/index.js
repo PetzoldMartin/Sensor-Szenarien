@@ -90,7 +90,7 @@ AlarmModul.prototype.init = function (config) {
 
     self.attachDetach({device: this.vDev.id}, true);
 
-    self.controller.on("LockDoorModule_locked", function() {
+    self.controller.devices.on("LockDoorModule_locked", function() {
       self.vDev.performCommand("on");
     });
     this.config.tests.forEach(function(test) {
@@ -131,6 +131,8 @@ AlarmModul.prototype.stop = function () {
         this.controller.devices.remove(this.vDev.id);
         this.vDev = null;
     }
+
+    self.controller.devices.off("LockDoorModule_locked", function() {});
 
     AlarmModul.super_.prototype.stop.call(this);
 };
