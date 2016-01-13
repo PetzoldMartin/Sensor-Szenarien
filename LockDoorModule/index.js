@@ -71,17 +71,22 @@ LockDoorModule.prototype.init = function (config) {
             } else if (switchVDev.get("metrics:level") == "on") {
                 // standby mode should be started
                 vDev.set("metrics:level", "time to enter standby");
-				// self.controller.devices.emit("LockDoorModule_locked");
-                self.peoplePresent = false;
 
-                // check all PersonCounter
+                // check, if there are people in the flat, no matter in which room
+                self.personInFlat = false;
                 self.controller.devices.forEach(function(vDev){
-                    self.checkPersonCountersAndStartTurnOffTimer(vDev);
+                    self.checkPersonCounters(vDev);
                 });
 
-                if (self.peoplePresent) {
+                // if no persons are in the flat, start turnOffTimer
+                if (!self.personInFlat) {
+                    //self.personInRoom = false;
+                    // check all PersonCounter
+                    self.controller.devices.forEach(function(vDev){
+                        self.checkPersonCountersAndStartTurnOffTimer(vDev);
+                    });
+                } else {
                     vDev.set("metrics:level", "standby imposible, there are people present");
-                    // notify user
                 }
             }
         });
@@ -95,27 +100,23 @@ LockDoorModule.prototype.stop = function () {
 };
 
 // checks all PersonCounters, starts timer, if nobody is present
+LockDoorModule.prototype.checkPersonCounters = function (vDev) {
+    self = this;
+    if ((vDev.id.indexOf('PersonCounter') != -1 ) && !this.personInFlat){
+        var persons = vDev.performCommand('persons');
+        //var currentRoomId = vDev.get('metrics:room');
+        if (persons > 0) {
+            this.personInFlat = true;
+        }
+    }
+};
+
+// checks all PersonCounters, starts timer, if nobody is present
 LockDoorModule.prototype.checkPersonCountersAndStartTurnOffTimer = function (vDev) {
     self = this;
     if (vDev.id.indexOf('PersonCounter') != -1 ){
-    // if (vDev.id.indexOf("DummyDevice_35") != -1 ) {
-        // var persons = vDev.get("metrics:level");
-        var persons = vDev.performCommand('persons');
         var currentRoomId = vDev.get('metrics:room');
-        if (persons > 0) {
-            this.peoplePresent = true;
-        } else {
-            // start timer for all rooms with personCounter
-            self.manageTurnOffTimerForRoom(currentRoomId, vDev);
-        }
-    }
-    // subscribe for counter expired events
-    if (this.roomWithTurnOffTimer.length > 0) {
-        for (var i = 0; i < this.roomWithTurnOffTimer.length; i++) {
-            var roomId = this.roomWithTurnOffTimer[i];
-            // self.controller.devices.on();
-            // TODO
-        }
+        self.manageTurnOffTimerForRoom(currentRoomId, vDev);
     }
 };
 
