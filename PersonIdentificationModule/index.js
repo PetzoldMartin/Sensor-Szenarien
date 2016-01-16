@@ -352,8 +352,11 @@ PersonIdentificationModule.prototype.lookForAdult = function (self) {
         if (!(oTime > (time + self.highmeasureWaitingtime) | oTime < (time - self.highmeasureWaitingtime))) {
             //if (value !== 0) {
                 self.adultCount += value;
-                if(!self.CO2State){
+                if(!self.CO2State&self.adultCount>=1){
                     self.makeStatement(true,self);
+                }
+                 if(!self.CO2State&self.adultCount<1){
+                    self.makeStatement(false,self);
                 }
             //}
              if (self.vDev.get("metrics:debug")) {
