@@ -16,6 +16,7 @@ PersonIdentificationModule.prototype.init = function (config) {
     this.waitingMinutes = 2;
     this.roomVolume = 100000;
     this.correctionFactor = 1;
+    this.CO2State=true;
 
     this.highGetData = {
         lastHighMeasurepoint: 0,
@@ -66,7 +67,8 @@ PersonIdentificationModule.prototype.init = function (config) {
                         alarmSwitchDeviceId: -1,
                         highmeasureWaitingtime: 1,
                         debug: false,
-                        waitingMinutes: 2
+                        waitingMinutes: 2,
+                        CO2State:true
                     }
                 },
                 overlay: {
@@ -164,6 +166,20 @@ PersonIdentificationModule.prototype.init = function (config) {
                                 };
                             }
                             ;
+                        case "CO2on":
+                        self.CO2State=true;
+                        vDev.set("metrics:CO2State", true);
+                       return{
+                                'code': 1,
+                                'debug State': vDev.get("metrics:debug")
+                            };
+                        case "CO2off":  
+                        self.CO2State=false;
+                        vDev.set("metrics:CO2State", false);
+                        return{
+                                'code': 1,
+                                'debug State': vDev.get("metrics:debug")
+                            };
                         default :
                             return {
                                 'code': 2,
@@ -211,7 +227,7 @@ PersonIdentificationModule.prototype.init = function (config) {
 
     if (cO2SensorId) {
         self.controller.devices.on(cO2SensorId, "change:metrics:level", function () {
-            if (vDev.get("metrics:runningState")) {
+            if (vDev.get("metrics:runningState")&self.CO2State) {
                 if (self.lookAfterOpenDandW(self.config.doorWindowContacts, self)) {
 
                     //some seeing of overdriven measurepoints
@@ -336,6 +352,9 @@ PersonIdentificationModule.prototype.lookForAdult = function (self) {
         if (!(oTime > (time + self.highmeasureWaitingtime) | oTime < (time - self.highmeasureWaitingtime))) {
             //if (value !== 0) {
                 self.adultCount += value;
+                if(!self.CO2State){
+                    self.makeStatement(true,self);
+                }
             //}
              if (self.vDev.get("metrics:debug")) {
                 self.controller.addNotification("info", "wtf", "module", "PersonIdentificationModule");
@@ -351,6 +370,9 @@ PersonIdentificationModule.prototype.lookForAdult = function (self) {
     if (self.personCount < self.adultCount) {
         self.adultCount = self.personCount;
     }
+    if(!self.CO2State&&(self.adultCount<1)){
+                    self.makeStatement(false,self);
+                }
     ;
     self.vDev.set("metrics:adultCount", self.adultCount);
     if (self.vDev.get("metrics:debug")) {
