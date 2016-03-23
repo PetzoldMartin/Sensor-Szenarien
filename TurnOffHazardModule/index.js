@@ -147,6 +147,8 @@ TurnOffHazardModule.prototype.init = function (config) {
                     'message': 'OK',
                     'history': storedHistory
                 }
+            } else if (command === "setTurnOffTimerState") {
+                vDev.set('metrics:turnOffTimerState', args.state);
             } else if (command === "setHazardsState") {
                 if(args.state) {
                     self.hazardsState = args.state;
@@ -192,6 +194,8 @@ TurnOffHazardModule.prototype.init = function (config) {
 
     // init flag
     self.hazardsState = 'active';
+	
+	self.vDev.set('metrics:turnOffTimerState', 'pause');
 
     // Wait for event core.start, which indicates, that all modules are loaded.
     // Otherwise an exception will be thrown, because the module can not be used.
@@ -237,8 +241,14 @@ TurnOffHazardModule.prototype.init = function (config) {
         self.personIdentificationDeviceId = self.getPersonIdentificationDeviceId(self.config.commonOptions.room);
         if (self.personIdentificationDeviceId) {
             self.controller.devices.on(self.personIdentificationDeviceId, 'PersonIdentificationModule_' + self.config.commonOptions.room + '_no_adult_there', function() {
+				
+				self.controller.addNotification("info", "no adult there", "module", "TurnOffHazardModule");
+				
                 if(self.hazardsState) {
                     if(self.hazardsState == 'active') {
+						
+						self.controller.addNotification("info", "no adult there and state is active", "module", "TurnOffHazardModule");
+						
                         // no adult in room
                         self.vDev.performCommand("hazardOff");
 

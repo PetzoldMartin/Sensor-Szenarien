@@ -58,13 +58,13 @@ TurnOffTimerModule.prototype.init = function (config) {
 		handler: function (command, args) {
 			
 			// check if InHomeFeedbackModule exists
-			if(feedbackModuleVDev == null) {
+			if(self.feedbackModuleVDev == null) {
 				vDev.set("metrics:level", "In Home Feedback Module is required");
 			}
 			
-            if(command === "start_timer" && feedbackModuleVDev != null) {
+            if(command === "start_timer" && self.feedbackModuleVDev != null) {
 			
-                if(args.time && args.priority) {
+                if(args.time && args.priority) {			
 				
 					// if the priority of the new command is larger than the priority of the actual command
 					if(args.priority >= vDev.get("metrics:priority")){
@@ -80,7 +80,7 @@ TurnOffTimerModule.prototype.init = function (config) {
 							counter = 0;
 						
 							// send start command to the InHomeFeedbackModule
-							feedbackModuleVDev.performCommand("start", {endless: true});
+							self.feedbackModuleVDev.performCommand("start", {endless: true});
 							self.i = setInterval(function(){
 									
 								// calculate the current timer value
@@ -97,7 +97,7 @@ TurnOffTimerModule.prototype.init = function (config) {
 									vDev.set("metrics:time", 0);
 									vDev.set("metrics:level", "Timer has expired");
 									// send a stop command to the InHomeFeedbackModule
-									feedbackModuleVDev.performCommand("stop");
+									self.feedbackModuleVDev.performCommand("stop");
 									self.controller.addNotification("info", "Turn Off Timer Module has expired for room " + room, "module", "TurnOffTimerModule");
 									self.controller.devices.emit(vDev.deviceId + ':TurnOffTimerModule_' + room + '_expired');
 								}
@@ -109,7 +109,7 @@ TurnOffTimerModule.prototype.init = function (config) {
 									vDev.set("metrics:time", 0);
 									vDev.set("metrics:level", "Timer has canceled");
 									// send a stop command to the InHomeFeedbackModule
-									feedbackModuleVDev.performCommand("stop");
+									self.feedbackModuleVDev.performCommand("stop");
 									self.controller.addNotification("info", "Turn Off Timer Module has canceled for room " + room, "module", "TurnOffTimerModule");
 									self.controller.devices.emit(vDev.deviceId + ':TurnOffTimerModule_' + room + '_canceled');
 								}	
@@ -124,7 +124,7 @@ TurnOffTimerModule.prototype.init = function (config) {
 							counter = 0;
 						
 							// send start command to the InHomeFeedbackModule
-							feedbackModuleVDev.performCommand("start", {endless: true});
+							self.feedbackModuleVDev.performCommand("start", {endless: true});
 							self.i = setInterval(function(){
 								
 								// calculate the current timer value
@@ -141,7 +141,7 @@ TurnOffTimerModule.prototype.init = function (config) {
 									vDev.set("metrics:time", 0);
 									vDev.set("metrics:level", "Timer has expired");
 									// send a stop command to the InHomeFeedbackModule
-									feedbackModuleVDev.performCommand("stop");
+									self.feedbackModuleVDev.performCommand("stop");
 									self.controller.addNotification("info", "Turn Off Timer Module has expired for room " + room, "module", "TurnOffTimerModule");
 									self.controller.devices.emit(vDev.deviceId + ':TurnOffTimerModule_' + room + '_expired');
 								}
@@ -153,7 +153,7 @@ TurnOffTimerModule.prototype.init = function (config) {
 									vDev.set("metrics:time", 0);
 									vDev.set("metrics:level", "Timer has canceled");
 									// send a stop command to the InHomeFeedbackModule
-									feedbackModuleVDev.performCommand("stop");
+									self.feedbackModuleVDev.performCommand("stop");
 									self.controller.addNotification("info", "Turn Off Timer Module has canceled for room " + room, "module", "TurnOffTimerModule");
 									self.controller.devices.emit(vDev.deviceId + ':TurnOffTimerModule_' + room + '_canceled');
 								}
@@ -171,13 +171,15 @@ TurnOffTimerModule.prototype.init = function (config) {
 	
 	// set the variables for the room, the event name, the InHomeFeedbackModule ID and the InHomeFeedbackModule object
 	var room 				 = vDev.get("metrics:roomId");
-	var feedbackModuleVDevId = "InHomeFeedbackModule_" + self.findFeedbackModule(room);
-	var feedbackModuleVDev   =  self.controller.devices.get(feedbackModuleVDevId);
-	var eventName 			 = "InHomeFeedbackModule_" + room + "_canceled_by_user";
-	
-    self.controller.devices.on(feedbackModuleVDevId, eventName, function() {
+	self.controller.on("core.start", function() {
+		var feedbackModuleVDevId = "InHomeFeedbackModule_" + self.findFeedbackModule(room);
+		self.feedbackModuleVDev   =  self.controller.devices.get(feedbackModuleVDevId);
+		
+		self.controller.devices.on(feedbackModuleVDevId, eventName, function() {
 		vDev.set("metrics:cancel", "1");
     });
+	});
+	var eventName 			 = "InHomeFeedbackModule_" + room + "_canceled_by_user";
 	
     self.vDev = vDev;
 	vDev.set("metrics:level", "Timer is ready");

@@ -32,7 +32,7 @@
 						"items": {
 							"field": "enum",
 							"datasource": "namespaces",
-							"enum": "namespaces:devices_switchBinary:deviceId,namespaces:devices_switchMultilevel:deviceId",
+							"enum": "namespaces:devices_all:deviceId",
 							"required": true
 						}
 					}
@@ -44,7 +44,7 @@
 					"cancelSwitch": {
 						"field": "enum",
 						"datasource": "namespaces",
-						"enum": "namespaces:devices_switchBinary:deviceId,namespaces:devices_buttonControl:deviceId,namespaces:devices_toggleButton:deviceId"
+						"enum": "namespaces:devices_all:deviceId"
 					}
 				}
 			}
@@ -75,7 +75,7 @@
 								"type": "select",
 								"datasource": "namespaces",
 								"field": "optionLabels",
-								"optionLabels": "namespaces:devices_switchBinary:deviceName,namespaces:devices_switchMultilevel:deviceName"
+								"optionLabels": "namespaces:devices_all:deviceName"
 							}
 						}
 					}
@@ -89,7 +89,7 @@
 						"type": "select",
 						"datasource": "namespaces",
 						"field": "optionLabels",
-						"optionLabels": "namespaces:devices_switchBinary:deviceName,namespaces:devices_buttonControl:deviceName,namespaces:devices_toggleButton:deviceName"
+						"optionLabels": "namespaces:devices_all:deviceName"
 					}
 				}
 			}

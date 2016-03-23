@@ -16,6 +16,7 @@ PersonIdentificationModule.prototype.init = function (config) {
     this.waitingMinutes = 2;
     this.roomVolume = 100000;
     this.correctionFactor = 1;
+    this.CO2State=true;
 
     this.highGetData = {
         lastHighMeasurepoint: 0,
@@ -66,7 +67,8 @@ PersonIdentificationModule.prototype.init = function (config) {
                         alarmSwitchDeviceId: -1,
                         highmeasureWaitingtime: 1,
                         debug: false,
-                        waitingMinutes: 2
+                        waitingMinutes: 2,
+                        CO2State:true
                     }
                 },
                 overlay: {
@@ -164,6 +166,20 @@ PersonIdentificationModule.prototype.init = function (config) {
                                 };
                             }
                             ;
+                        case "CO2on":
+                        self.CO2State=true;
+                        vDev.set("metrics:CO2State", true);
+                       return{
+                                'code': 1,
+                                'debug State': vDev.get("metrics:debug")
+                            };
+                        case "CO2off":  
+                        self.CO2State=false;
+                        vDev.set("metrics:CO2State", false);
+                        return{
+                                'code': 1,
+                                'debug State': vDev.get("metrics:debug")
+                            };
                         default :
                             return {
                                 'code': 2,
@@ -178,15 +194,17 @@ PersonIdentificationModule.prototype.init = function (config) {
     self.vDev = vDev;
     //Variable initialize
     vDev.set("metrics:level", "off");
+    
     self.personCount = vDev.get("metrics:personCount");
     self.adultCount = vDev.get("metrics:adultCount");
     if (vDev.get("metrics:room") === -1) {
         vDev.set("metrics:room", self.config.room);
     }
     ;
-  
+
         vDev.set("metrics:highmeasureWaitingtime", self.config.highmeasureWaitingtime);
-    
+                 self.highmeasureWaitingtime = vDev.get("metrics:highmeasureWaitingtime");
+
     ;
     if (vDev.get("metrics:correctionFactor") === 1) {
         vDev.set("metrics:correctionFactor", self.config.correctionFactor);
@@ -209,7 +227,7 @@ PersonIdentificationModule.prototype.init = function (config) {
 
     if (cO2SensorId) {
         self.controller.devices.on(cO2SensorId, "change:metrics:level", function () {
-            if (vDev.get("metrics:runningState")) {
+            if (vDev.get("metrics:runningState")&self.CO2State) {
                 if (self.lookAfterOpenDandW(self.config.doorWindowContacts, self)) {
 
                     //some seeing of overdriven measurepoints
@@ -225,7 +243,7 @@ PersonIdentificationModule.prototype.init = function (config) {
                             var delta = ((self.getRegressionLineValue(self.line, self.measuredata.xList[self.measuredata.xList.length - 1])) - (self.getRegressionLineValue(self.line, self.measuredata.xList[0])))
                                     * self.correctionFactor;
                             //eigentlich sollte das immer beim init passieren aber es geht nicht der mist
-                            self.readPersonCounter(persoCounterId, self.measuredata);
+                            self.readPersonCounter(persoCounterId, self.measuredata,self);
 
                             //
                             self.makeStatement(self.identify(delta, self.personas, self.personCount, self.roomVolume, self.waitingMinutes, self.adultCount), self);
@@ -246,11 +264,16 @@ PersonIdentificationModule.prototype.init = function (config) {
         self.controller.devices.on(persoCounterId, "change:metrics:level", function () {
             if (vDev.get("metrics:runningState")) {
                 var pcOld = self.personCount;
-                self.readPersonCounter(persoCounterId, self.measuredata);
-                self.makeStatement(false, self);
+                self.readPersonCounter(persoCounterId, self.measuredata,self);
                 self.highGetData.lastPValue = new Date().getTime();
+                
                 self.highGetData.value = self.personCount - pcOld;
+                 if (vDev.get("metrics:debug")) {
+                self.controller.addNotification("info", "PC switch  "+self.highGetData.value +"old: "+pcOld+"new: "+self.personCount, "module", "PersonIdentificationModule");
+                }
                 self.lookForAdult(self);
+                self.makeStatement(self.adultFound, self);
+
             }
         });
     }
@@ -268,14 +291,16 @@ PersonIdentificationModule.prototype.init = function (config) {
             function (each) {
                 self.controller.devices.on(each, "change:metrics:level", function () {
                     if (vDev.get("metrics:runningState")) {
-                        if (self.personCount === 0) {
-                            self.personCount = self.readPersonCounter(persoCounterId, self.measuredata);
-
-                        }
+                        
                         var measurePoint = self.controller.devices.get(each);
                         if (measurePoint.get("metrics:level") === "on") {
                             self.highGetData.lastHighMeasurepoint = new Date().getTime();
                             self.lookForAdult(self);
+                            self.makeStatement(self.adultFound, self);
+                             if (vDev.get("metrics:debug")) {
+                            self.controller.addNotification("info", "dc", "module", "PersonIdentificationModule");
+                            }
+
                         }
                     }
                 });
@@ -320,22 +345,37 @@ PersonIdentificationModule.prototype.lookForAdult = function (self) {
     var time = self.highGetData.lastPValue/1000;
     var oTime = self.highGetData.lastHighMeasurepoint/1000;
     var value = self.highGetData.value;
-    if (!(time === 0 | oTime === 0)) {
-        if (oTime !== 0 & oTime <= time + self.highmeasureWaitingtime & oTime >= time - self.highmeasureWaitingtime) {
-            if (value !== 0) {
+    if (self.vDev.get("metrics:debug")) {
+    self.controller.addNotification("info", time+"  "+oTime, "module", "PersonIdentificationModule");
+    }
+    if (!(time === 0 || oTime === 0)) {
+        if (!(oTime > (time + self.highmeasureWaitingtime) | oTime < (time - self.highmeasureWaitingtime))) {
+            //if (value !== 0) {
                 self.adultCount += value;
-            }
-             this.highGetData = {
-            lastHighMeasurepoint: 0,
-            lastPValue: 0,
-            value: 0
-        };
+                if(!self.CO2State&self.adultCount>=1){
+                    self.makeStatement(true,self);
+                }
+                 if(!self.CO2State&self.adultCount<1){
+                    self.makeStatement(false,self);
+                }
+            //}
+             if (self.vDev.get("metrics:debug")) {
+                self.controller.addNotification("info", "wtf", "module", "PersonIdentificationModule");
+                }
+        //     this.highGetData = {
+        //    lastHighMeasurepoint: 0,
+        //    lastPValue: 0,
+        //    value: 0
+        //};
         }
        
     }
     if (self.personCount < self.adultCount) {
         self.adultCount = self.personCount;
     }
+    if(!self.CO2State&&(self.adultCount<1)){
+                    self.makeStatement(false,self);
+                }
     ;
     self.vDev.set("metrics:adultCount", self.adultCount);
     if (self.vDev.get("metrics:debug")) {
@@ -523,12 +563,12 @@ PersonIdentificationModule.prototype.initMeasureData = function (measuredata) {
  * @param {object} measureData
  * @returns {undefined}
  */
-PersonIdentificationModule.prototype.readPersonCounter = function (persoCounterId, measureData) {
-    var personCounterDevice = this.controller.devices.get(persoCounterId);
-    this.personCount = personCounterDevice.get("metrics:level");
-    this.initMeasureData(measureData);
-    if (this.vDev.get("metrics:debug")) {
-        this.controller.addNotification("info", "PersonIdentificationModule new pcouner: " + this.personCount, "module", "PersonIdentificationModule");
+PersonIdentificationModule.prototype.readPersonCounter = function (persoCounterId, measureData,self) {
+    var personCounterDevice = self.controller.devices.get(persoCounterId);
+    self.personCount = personCounterDevice.get("metrics:level");
+    self.initMeasureData(measureData);
+    if (self.vDev.get("metrics:debug")) {
+        self.controller.addNotification("info", "PersonIdentificationModule new pcouner: " + self.personCount, "module", "PersonIdentificationModule");
     }
 };
 

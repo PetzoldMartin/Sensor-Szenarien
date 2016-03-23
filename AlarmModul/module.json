@@ -42,7 +42,7 @@
 								"device": {
 									"field": "enum",
 									"datasource": "namespaces",
-									"enum": "namespaces:devices_sensorBinary:deviceId,namespaces:devices_switchBinary:deviceId",
+									"enum": "namespaces:devices_all:deviceId",
 									"required": true
 								},
 								"testValue": {
@@ -60,7 +60,7 @@
 								"device": {
 									"field": "enum",
 									"datasource": "namespaces",
-									"enum": "namespaces:devices_sensorMultilevel:deviceId,namespaces:devices_switchMultilevel:deviceId,namespaces:devices_battery:deviceId",
+									"enum": "namespaces:devices_all:deviceId",
 									"required": true
 								},
 								"testOperator": {
@@ -81,7 +81,7 @@
 								"device": {
 									"field": "enum",
 									"datasource": "namespaces",
-									"enum": "namespaces:devices_switchControl:deviceId",
+									"enum": "namespaces:devices_all:deviceId",
 									"required": true
 								},
 								"testValue": {
@@ -149,7 +149,7 @@
 										"type": "select",
 										"datasource": "namespaces",
 										"field": "optionLabels",
-										"optionLabels": "namespaces:devices_sensorBinary:deviceName,namespaces:devices_switchBinary:deviceName"
+										"optionLabels": "namespaces:devices_all:deviceName"
 									}
 								}
 							},
@@ -164,7 +164,7 @@
 										"type": "select",
 										"datasource": "namespaces",
 										"field": "optionLabels",
-										"optionLabels": "namespaces:devices_sensorMultilevel:deviceName,namespaces:devices_switchMultilevel:deviceName"
+										"optionLabels": "namespaces:devices_all:deviceName"
 									},
 									"testOperator": {
 										"type": "select",
@@ -183,7 +183,7 @@
 										"type": "select",
 										"datasource": "namespaces",
 										"field": "optionLabels",
-										"optionLabels": "namespaces:devices_switchControl:deviceName"
+										"optionLabels": "namespaces:devices_all:deviceName"
 									}
 								}
 							}
