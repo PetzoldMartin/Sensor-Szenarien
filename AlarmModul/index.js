@@ -73,7 +73,7 @@ AlarmModul.prototype.init = function (config) {
                 };
                 if (command == "off") {
                   http.request({
-                      url: 'http://sensor.fh-zwickau.de/index.php?option=com_sensor&task=sensor.setAlarmState&level=off&format=json',
+                      url: 'https://sensor.fh-zwickau.de/index.php?option=com_sensor&task=sensor.setAlarmState&level=off&format=json',
                       type: 'GET',
                       async: true,
                       dataType: "json",
@@ -226,7 +226,7 @@ AlarmModul.prototype.testRule = function (tree) {
         // Senden der Notification
         self.controller.addNotification("warning", self.message, "module", "AlarmModul");
         http.request({
-            url: 'http://sensor.fh-zwickau.de/index.php?option=com_sensor&task=sensor.setAlarmState&level=on&format=json',
+            url: 'https://sensor.fh-zwickau.de/index.php?option=com_sensor&task=sensor.setAlarmState&level=on&format=json',
             type: 'GET',
             async: true,
             dataType: "json",
