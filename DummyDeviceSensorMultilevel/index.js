@@ -29,6 +29,16 @@ DummyDeviceSensorMultilevel.prototype.init = function (config) {
 
     var self = this;
 
+    // Initialize additional libraries
+    // https://github.com/jakesgordon/javascript-state-machine
+    var file = "/userModules/DummyDeviceSensorMultilevel/lib/xdate.js";
+    var stat = fs.stat(file);
+    if (stat && stat.type === "file") {
+        executeFile(file);
+    } else {
+        // TODO: Error
+    }
+
     // *********************************
     // *** Virtual Device Definition ***
     // *********************************
@@ -63,6 +73,8 @@ DummyDeviceSensorMultilevel.prototype.init = function (config) {
                         // see event view of smart home ui ...
                         self.controller.addNotification("info", "Dummy Device Sensor Multilevel (" + self.id + ") - New level is " + newLevel + ".", "module", "DummyDeviceSensorMultilevel");
 
+                        self.addHistoryEntry(newLevel);
+
                         // send a response: all OK ...
                         return {
                             'code': 1,
@@ -82,14 +94,56 @@ DummyDeviceSensorMultilevel.prototype.init = function (config) {
                         'message': 'Error - missing parameter'
                     }
                 }
-			}
+			} else if(command == "state") {
+                var storedHistory = loadObject("DummyDeviceSensorMultilevel_" + self.id);
+
+                return {
+                    'code': 1,
+                    'message': 'OK',
+                    'state': {
+                        'metrics': vDev.get('metrics'),
+                        'history': storedHistory
+                    }
+                }
+            } else if (command === "history") {
+                var storedHistory = loadObject("DummyDeviceSensorMultilevel_" + self.id);
+
+                return {
+                    'code': 1,
+                    'message': 'OK',
+                    'history': storedHistory
+                }
+            }
         },
         moduleId: this.id
     });
 };
 
 DummyDeviceSensorMultilevel.prototype.stop = function () {
-    this.controller.devices.remove("DummyDeviceSensorMultilevel_" + this.id);
+    var self = this;
+
+    self.controller.devices.remove("DummyDeviceSensorMultilevel_" + self.id);
 
     DummyDeviceSensorMultilevel.super_.prototype.stop.call(this);
 };
+
+DummyDeviceSensorMultilevel.prototype.addHistoryEntry = function (historyEntry) {
+    var self = this;
+    var vDev = self.controller.devices.get("DummyDeviceSensorMultilevel_" + self.id);
+
+    var storedHistory = loadObject("DummyDeviceSensorMultilevel_" + self.id);
+    if (!storedHistory) {
+        storedHistory = {
+            deviceId: "DummyDeviceSensorMultilevel_" + self.id,
+            deviceName: vDev.get("metrics:title"),
+            historyData: []
+        };
+    }
+    storedHistory.historyData.push({
+        "timeUnix": Date.now(),
+        "timeFormat": new XDate(Date.now()).toString("dd.MM.yyyy hh:mm:ss"),
+        "data": historyEntry
+    });
+    saveObject("DummyDeviceSensorMultilevel_" + self.id, storedHistory);
+    storedHistory = null;
+}
