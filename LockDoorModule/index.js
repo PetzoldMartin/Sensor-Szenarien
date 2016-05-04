@@ -126,7 +126,7 @@ LockDoorModule.prototype.manageTurnOffTimerForRoom = function (currentRoomId) {
     if (turnOffTimerModuleId) {
         var turnOffTimer =  self.controller.devices.get(turnOffTimerModuleId);
 
-        turnOffTimer.performCommand('start_timer', {'time': 30, 'priority': 1});
+        turnOffTimer.performCommand('start_timer', {'time': 50, 'priority': 1});
         this.roomWithTurnOffTimer.push(currentRoomId);
 
         this.controller.devices.on(turnOffTimerModuleId, 'TurnOffTimerModule_' + currentRoomId + "_expired", function() {

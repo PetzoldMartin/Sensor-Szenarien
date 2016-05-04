@@ -28,12 +28,12 @@ RoomAccessModule.prototype.init = function (config) {
     RoomAccessModule.super_.prototype.init.call(this, config);
 
     var self = this;
-    
-    // Time for checking for a transition with the second sensor in milliseconds
-    var motionSensorTime = 5000;
 
-    var lastEventMotionSensorOne;
-    var lastEventMotionSensorTwo;
+    // Time for checking for a transition with the second sensor in milliseconds
+    self.motionSensorTime = 5000;
+
+    self.lastEventMotionSensorOne;
+    self.lastEventMotionSensorTwo;
 
     // Virtuel Device Definition
     // This object defines the interface for the ZAutomation API and the UI (Elements)
@@ -55,14 +55,19 @@ RoomAccessModule.prototype.init = function (config) {
                 icon: "/ZAutomation/api/v1/load/modulemedia/RoomAccessModule/icon.png"
             }
         },
+        handler: function (command, args) {
+            if(command == 'refreshEvents') {
+                self.refresh();
+            }
+        },
         moduleId: this.id
     });
-    
+
     // setup and connect a PersonCounterDevice for this room
     // save the id of PersonCounterDevice as instance variable, because
     // the access in the stop function is necessary
     var personCounterDeviceIdOne = self.createPersonCounterIfNecessary(self.config.roomOne);
-    
+
     var personCounterDeviceIdTwo = self.createPersonCounterIfNecessary(self.config.roomTwo);
 
     this.config.roomAccessControls.forEach(function(roomAccessControl) {
@@ -80,7 +85,7 @@ RoomAccessModule.prototype.init = function (config) {
                 if(level == 'on') {
                     self.lastEventMotionSensorOne = new Date().getTime();
                     //self.controller.addNotification("info", "RoomAccessModule (" + self.id + "): Motion Sensor One (" + motionSensorOne + ") for room (" + self.config.room + ") fired", "module", "RoomAccessModule");
-                    if(new Date().getTime() - self.lastEventMotionSensorTwo < motionSensorTime) {
+                    if(new Date().getTime() - self.lastEventMotionSensorTwo < self.motionSensorTime) {
                         self.setUpTransition(personCounterDeviceIdTwo, personCounterDeviceIdOne);
                     }
                 }
@@ -95,7 +100,7 @@ RoomAccessModule.prototype.init = function (config) {
                 if(level == 'on') {
                     self.lastEventMotionSensorTwo = new Date().getTime();
 
-                    if(new Date().getTime() - self.lastEventMotionSensorOne < motionSensorTime) {
+                    if(new Date().getTime() - self.lastEventMotionSensorOne < self.motionSensorTime) {
                         self.setUpTransition(personCounterDeviceIdOne, personCounterDeviceIdTwo);
                     }
                 }
@@ -105,6 +110,61 @@ RoomAccessModule.prototype.init = function (config) {
     // save the room id in metrics:roomId field of virtual device
     vDev.set("metrics:roomIdOne", this.config.roomOne);
     vDev.set("metrics:roomIdTwo", this.config.roomTwo);
+};
+
+RoomAccessModule.prototype.refresh = function () {
+    var self = this;
+
+    // remove all events
+    this.config.roomAccessControls.forEach(function(roomAccessControl) {
+        if (roomAccessControl.roomAccessControlType === "Motion") {
+            self.controller.devices.off(roomAccessControl.roomAccessControlMotionSensor.motionSensorOne, 'change:metrics:level', function() {});
+            self.controller.devices.off(roomAccessControl.roomAccessControlMotionSensor.motionSensorTwo, 'change:metrics:level', function() {});
+            console.log('RoomAccess:refresh:unregister');
+        }
+    });
+
+    // register all events
+    var personCounterDeviceIdOne = self.createPersonCounterIfNecessary(self.config.roomOne);
+    var personCounterDeviceIdTwo = self.createPersonCounterIfNecessary(self.config.roomTwo);
+
+    this.config.roomAccessControls.forEach(function(roomAccessControl) {
+        if (roomAccessControl.roomAccessControlType === "Motion") {
+            var motionSensorOne = roomAccessControl.roomAccessControlMotionSensor.motionSensorOne; // id of virtual device
+            var motionSensorTwo = roomAccessControl.roomAccessControlMotionSensor.motionSensorTwo; // id of virtual device
+
+            // add listener (id of virtual device is needed)
+            self.controller.devices.on(motionSensorOne, 'change:metrics:level', function() {
+                // important: load device by id only within the callback function (otherwise the object is null)
+                var vDevMotionSensorOne = self.controller.devices.get(motionSensorOne); // virtual device object
+                // get actual level (virtual device object is needed)
+                var level = vDevMotionSensorOne.get("metrics:level");
+
+                if(level == 'on') {
+                    self.lastEventMotionSensorOne = new Date().getTime();
+                    //self.controller.addNotification("info", "RoomAccessModule (" + self.id + "): Motion Sensor One (" + motionSensorOne + ") for room (" + self.config.room + ") fired", "module", "RoomAccessModule");
+                    if(new Date().getTime() - self.lastEventMotionSensorTwo < self.motionSensorTime) {
+                        self.setUpTransition(personCounterDeviceIdTwo, personCounterDeviceIdOne);
+                    }
+                }
+            });
+
+            // add listener (id of virtual device is needed)
+            self.controller.devices.on(motionSensorTwo, 'change:metrics:level', function() {
+                var vDevMotionSensorTwo = self.controller.devices.get(motionSensorTwo); // virtual device object
+                // get actual level (virtual device object is needed)
+                var level = vDevMotionSensorTwo.get("metrics:level");
+
+                if(level == 'on') {
+                    self.lastEventMotionSensorTwo = new Date().getTime();
+
+                    if(new Date().getTime() - self.lastEventMotionSensorOne < self.motionSensorTime) {
+                        self.setUpTransition(personCounterDeviceIdOne, personCounterDeviceIdTwo);
+                    }
+                }
+            });
+        }
+    });
 };
 
 RoomAccessModule.prototype.stop = function () {
