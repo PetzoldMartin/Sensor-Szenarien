@@ -20,40 +20,66 @@
 	"schema" : {
 		"type" : "object",
 		"properties" : {
-			"roomOne": {
-				"type": "integer",
-				"required": true
+			"commonOptions": {
+				"type": "object",
+				"properties": {
+					"roomOne": {
+						"type": "integer",
+						"required": true
+					},
+					"roomTwo": {
+						"type": "integer",
+						"required": true
+					}
+				}
 			},
-			"roomTwo": {
-				"type": "integer",
-				"required": true
-			},
-			"roomAccessControls": {
-				"type": "array",
-				"items": {
-					"type": "object",
-					"properties": {
-						"roomAccessControlType": {
-							"type": "string",
-							"enum": ["Motion"],
-							"required": true,
-							"default": "Motion"
-						},
-						"roomAccessControlMotionSensor": {
+			"roomAccessControlsContainer": {
+				"type": "object",
+				"properties": {
+					"roomAccessControls": {
+						"type": "array",
+						"items": {
 							"type": "object",
-							"dependencies": "roomAccessControlType",
 							"properties": {
-								"motionSensorOne": {
-									"field": "enum",
-									"datasource": "namespaces",
-									"enum": "namespaces:devices_all:deviceId",
-									"required": true
+								"roomAccessControlType": {
+									"type": "string",
+									"enum": ["Motion", "Ultrasonic"],
+									"required": true,
+									"default": "Motion"
 								},
-								"motionSensorTwo": {
-									"field": "enum",
-									"datasource": "namespaces",
-									"enum": "namespaces:devices_all:deviceId",
-									"required": true
+								"roomAccessControlMotionSensor": {
+									"type": "object",
+									"dependencies": "roomAccessControlType",
+									"properties": {
+										"motionSensorOne": {
+											"field": "enum",
+											"datasource": "namespaces",
+											"enum": "namespaces:devices_all:deviceId",
+											"required": true
+										},
+										"motionSensorTwo": {
+											"field": "enum",
+											"datasource": "namespaces",
+											"enum": "namespaces:devices_all:deviceId",
+											"required": true
+										}
+									}
+								},
+								"roomAccessControlUltrasonicSensor": {
+									"type": "object",
+									"dependencies": "roomAccessControlType",
+									"properties": {
+										"ultrasonicSensor": {
+											"field": "enum",
+											"datasource": "namespaces",
+											"enum": "namespaces:devices_all:deviceId",
+											"required": true
+										},
+										"ultrasonicSensorDoorHeight": {
+											"type": "integer",
+											"required": true
+										}
+									}
 								}
 							}
 						}
@@ -64,45 +90,75 @@
 	},
 	"options": {
 		"fields": {
-			"roomOne": {
-				"label": "__l_room_id_one__",
-				"type": "integer",
-				"helper": "__l_room_help__"
-			},
-			"roomTwo": {
-				"label": "__l_room_id_two__",
-				"type": "integer",
-				"helper": "__l_room_help__"
-			},
-			"roomAccessControls": {
-				"label": "__l_room_access_controls__",
+			"commonOptions": {
+				"label": "__l_common_options__",
 				"fields": {
-					"item": {
+					"roomOne": {
+						"label": "__l_room_id_one__",
+						"type": "integer",
+						"helper": "__l_room_help__"
+					},
+					"roomTwo": {
+						"label": "__l_room_id_two__",
+						"type": "integer",
+						"helper": "__l_room_help__"
+					}
+				}
+			},
+			"roomAccessControlsContainer": {
+				"label": "__l_room_access_controls_container__",
+				"fields": {
+					"roomAccessControls": {
+						"label": "__l_room_access_controls__",
 						"fields": {
-							"roomAccessControlType": {
-								"type": "select",
-								"default": "",
-								"helper": "__l_room_access_control_help__"
-							},
-							"roomAccessControlMotionSensor": {
-								"label": "__l_room_access_control_motion_sensor__",
-								"dependencies": {
-									"roomAccessControlType": "Motion"
-								},
+							"item": {
 								"fields": {
-									"motionSensorOne": {
-										"label": "__l_motion_sensor_one__",
+									"roomAccessControlType": {
 										"type": "select",
-										"datasource": "namespaces",
-										"field": "optionLabels",
-										"optionLabels": "namespaces:devices_all:deviceName"
+										"default": "",
+										"helper": "__l_room_access_control_help__"
 									},
-									"motionSensorTwo": {
-										"label": "__l_motion_sensor_two__",
-										"type": "select",
-										"datasource": "namespaces",
-										"field": "optionLabels",
-										"optionLabels": "namespaces:devices_all:deviceName"
+									"roomAccessControlMotionSensor": {
+										"label": "__l_room_access_control_motion_sensor__",
+										"dependencies": {
+											"roomAccessControlType": "Motion"
+										},
+										"fields": {
+											"motionSensorOne": {
+												"label": "__l_motion_sensor_one__",
+												"type": "select",
+												"datasource": "namespaces",
+												"field": "optionLabels",
+												"optionLabels": "namespaces:devices_all:deviceName"
+											},
+											"motionSensorTwo": {
+												"label": "__l_motion_sensor_two__",
+												"type": "select",
+												"datasource": "namespaces",
+												"field": "optionLabels",
+												"optionLabels": "namespaces:devices_all:deviceName"
+											}
+										}
+									},
+									"roomAccessControlUltrasonicSensor": {
+										"label": "__l_room_access_control_ultrasonic__",
+										"dependencies": {
+											"roomAccessControlType": "Ultrasonic"
+										},
+										"fields": {
+											"ultrasonicSensor": {
+												"label": "__l_ultrasonic_sensor__",
+												"type": "select",
+												"datasource": "namespaces",
+												"field": "optionLabels",
+												"optionLabels": "namespaces:devices_all:deviceName"
+											},
+											"ultrasonicSensorDoorHeight": {
+												"label": "__l_ultrasonic_sensor_door_height__",
+												"type": "integer",
+												"helper": "__l_ultrasonic_sensor_door_height_help__"
+											}
+										}
 									}
 								}
 							}
