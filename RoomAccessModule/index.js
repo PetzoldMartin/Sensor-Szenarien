@@ -29,11 +29,30 @@ RoomAccessModule.prototype.init = function (config) {
 
     var self = this;
 
+    // initialize additional libraries
+    // https://github.com/trevnorris/cbuffer
+    var file = "/userModules/RoomAccessModule/lib/cbuffer.js";
+    var stat = fs.stat(file);
+    if (stat && stat.type === "file") {
+        executeFile(file);
+    }
+
+    var file = "/userModules/RoomAccessModule/lib/xdate.js";
+    var stat = fs.stat(file);
+    if (stat && stat.type === "file") {
+        executeFile(file);
+    }
+
     // time for checking for a transition with the second sensor in milliseconds
     self.motionSensorTime = 5000;
 
     self.lastEventMotionSensorOne;
     self.lastEventMotionSensorTwo;
+
+    // init circular buffer for ultrasonic values
+    self.ultrasonicValueBuffer = new CBuffer(4);
+    self.ultrasonicDoorHeight = 0;
+    self.ultrasonicAdjustment = 10;
 
     // virtuel device definition - object defines the interface for the ZAutomation API and the UI (Elements)
     var vDev = self.controller.devices.create({
@@ -52,7 +71,75 @@ RoomAccessModule.prototype.init = function (config) {
             }
         },
         handler: function (command, args) {
+            if(command === "getUltrasonicValueBuffer") {
+                var sum = 0;
+                self.ultrasonicValueBuffer.forEach(function(a) {
+                    sum += a;
+                });
+                var avg = sum / self.ultrasonicValueBuffer.size;
 
+                return {
+                    'code': 1,
+                    'message': 'OK',
+                    'buffer': self.getUltrasonicValueBufferData()
+                }
+            } else if(command === "setUltrasonicValueBufferSize") {
+                if(args.size) {
+                    var newSize = parseFloat(args.size);
+                    if(!isNaN(newSize)) {
+                        self.ultrasonicValueBuffer = new CBuffer(newSize);
+
+                        return {
+                            'code': 1,
+                            'message': 'OK'
+                        }
+                    } else {
+                        // send a response: wrong parameter ...
+                        return {
+                            'code': 3,
+                            'message': 'Error - parameter is not a number'
+                        }
+                    }
+                } else {
+                    // send a response: missing parameter ...
+                    return {
+                        'code': 2,
+                        'message': 'Error - missing parameter (size)'
+                    }
+                }
+            } else if(command === "setUltrasonicAdjustment") {
+                if(args.value) {
+                    var newValue = parseFloat(args.value);
+                    if(!isNaN(newValue)) {
+                        self.ultrasonicAdjustment = newValue;
+
+                        return {
+                            'code': 1,
+                            'message': 'OK'
+                        }
+                    } else {
+                        // send a response: wrong parameter ...
+                        return {
+                            'code': 3,
+                            'message': 'Error - parameter is not a number'
+                        }
+                    }
+                } else {
+                    // send a response: missing parameter ...
+                    return {
+                        'code': 2,
+                        'message': 'Error - missing parameter (value)'
+                    }
+                }
+            } else if (command === "history") {
+                var storedHistory = loadObject("RoomAccessModule_" + self.id);
+
+                return {
+                    'code': 1,
+                    'message': 'OK',
+                    'history': storedHistory
+                }
+            }
         },
         moduleId: this.id
     });
@@ -96,12 +183,30 @@ RoomAccessModule.prototype.init = function (config) {
                     }
                 }
             });
+        } else if (roomAccessControl.roomAccessControlType === "Ultrasonic") {
+            var ultrasonicSensor = roomAccessControl.roomAccessControlUltrasonicSensor.ultrasonicSensor;
+            var ultrasonicSensorDoorHeight = roomAccessControl.roomAccessControlUltrasonicSensor.ultrasonicSensorDoorHeight;
+
+            self.ultrasonicDoorHeight = ultrasonicSensorDoorHeight;
+
+            // add listener (id of virtual device is needed)
+            self.controller.devices.on(ultrasonicSensor, 'change:metrics:level', function() {
+                var vDevUltrasonicSensor = self.controller.devices.get(ultrasonicSensor); // virtual device object
+                // get actual level (virtual device object is needed)
+                var level = vDevUltrasonicSensor.get("metrics:level");
+
+                self.ultrasonicValueBuffer.push(level);
+
+                self.addHistoryEntry("Ultrasonic", self.getUltrasonicValueBufferData());
+
+                // TODO trigger person identification ...
+            });
         }
     });
 
     // save the room id in metrics:roomId field of virtual device
-    vDev.set("metrics:roomIdOne", this.config.commonOptions.roomOne);
-    vDev.set("metrics:roomIdTwo", this.config.commonOptions.roomTwo);
+    vDev.set("metrics:roomIdOne", self.config.commonOptions.roomOne);
+    vDev.set("metrics:roomIdTwo", self.config.commonOptions.roomTwo);
 };
 
 RoomAccessModule.prototype.stop = function () {
@@ -137,6 +242,37 @@ RoomAccessModule.prototype.performTransition = function (personCounterDeviceIdLe
     self.controller.devices.emit('RoomAccessModule_' + this.id + ':RoomAccessModule_' + personCounterDeviceIdLeft.get("metrics:room") + '_' + personCounterDeviceIdEntered.get("metrics:room") + '_transition_detected');
 };
 
+RoomAccessModule.prototype.getUltrasonicValueBufferData = function () {
+    var self = this;
+
+    var sum = 0;
+    self.ultrasonicValueBuffer.forEach(function(a) {
+        sum += a;
+    });
+    var avg = sum / self.ultrasonicValueBuffer.size;
+
+    // calculation without standby values (door height +/-)
+    var sumClean = 0;
+    var countClean = 0;
+    self.ultrasonicValueBuffer.forEach(function(a) {
+        if((self.ultrasonicDoorHeight - a) > self.ultrasonicAdjustment) {
+            sumClean += a;
+            countClean++;
+        }
+    });
+    var avgClean = sumClean / countClean;
+
+    return {
+        'buffer': self.ultrasonicValueBuffer.toArray(),
+        'sum': parseFloat(sum),
+        'avg': parseFloat(avg.toFixed(2)),
+        'adjustment': self.ultrasonicAdjustment,
+        'door': self.ultrasonicDoorHeight,
+        'sumClean': parseFloat(sumClean),
+        'avgClean': parseFloat(avgClean.toFixed(2))
+    }
+};
+
 RoomAccessModule.prototype.createPersonCounterIfNecessary = function (roomId) {
     var self = this;
     var deviceId = null;
@@ -170,3 +306,25 @@ RoomAccessModule.prototype.createPersonCounterIfNecessary = function (roomId) {
 
     return deviceId;
 };
+
+RoomAccessModule.prototype.addHistoryEntry = function (roomAccessControl, historyEntry) {
+    var self = this;
+    var vDev = self.controller.devices.get("RoomAccessModule_" + self.id);
+
+    var storedHistory = loadObject("RoomAccessModule_" + self.id);
+    if (!storedHistory) {
+        storedHistory = {
+            deviceId: "RoomAccessModule_" + self.id,
+            deviceName: vDev.get("metrics:title"),
+            historyData: []
+        };
+    }
+    storedHistory.historyData.push({
+        "timeUnix": Date.now(),
+        "timeFormat": new XDate(Date.now()).toString("dd.MM.yyyy hh:mm:ss"),
+        "roomAccessControl": roomAccessControl,
+        "data": historyEntry
+    });
+    saveObject("RoomAccessModule_" + self.id, storedHistory);
+    storedHistory = null;
+}
